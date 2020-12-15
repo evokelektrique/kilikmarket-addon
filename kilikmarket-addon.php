@@ -1,8 +1,8 @@
 <?php
 
 /*
-Plugin Name:
-Description:
+Plugin Name: KilikMarket
+Description: KilikMarket Addon
 Author: WebDataCo
 Version: 1.0
 Author URI: http://webdata.co
@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 // 
 // 
-//  This file is the main addon class
+//  This File Is The Main Addon Class
 // 
 // 
 
@@ -28,8 +28,10 @@ class KilikMarket {
 	public function __construct() {
 
 		$files = [
+			'vendor/autoload.php',
+			'constants.php',
 			'functions.php',
-			'constant.php'
+			'hooks.php',
 		];
 
 		// Call Load Files
@@ -68,8 +70,7 @@ class KilikMarket {
 
 
 // Register Global Instance
-global $km;
-$km = KilikMarket::get_instance();
+$GLOBALS['km'] = KilikMarket::get_instance();
 
 // Core Hooks
 register_activation_hook( __FILE__, ['KilikMarket', 'installation']);
