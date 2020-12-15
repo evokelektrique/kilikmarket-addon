@@ -1,13 +1,24 @@
-<?=
-KilikMarketFunctions::iframe([
-	'id' 		=> 'shops',
-	'src' 		=> 'http://localhost/wordpress_projects/kilikmarket_proxy/index.php?url=http://amazon.com/', 
-	'width' 	=> "100%", 
-	"height" 	=> "600",
-]);
+<?php
+// KilikMarketFunctions::iframe([
+// 	'id' 		=> 'shops',
+// 	'src' 		=> 'http://localhost/wordpress_projects/kilikmarket_proxy/index.php?url=http://amazon.com/', 
+// 	'width' 	=> "100%", 
+// 	"height" 	=> "600",
+// ]);
 ?>
 
-<div id="external_add_to_cart_container">
+
+<div class="shopping_websites">
+    <span id="ebay_website"></span>
+    <span id="aliexpress_website"></span>
+    <span id="sixpm_website"></span>
+    <span id="amazonae_website"></span>
+    <span id="amazon_website"></span>
+</div>
+
+
+
+<div id="external_add_to_cart_container" style="display: none">
 	<button id="external_add_to_cart">Add To Cart</button>
 	<button id="external_calculate">Calculate</button>
 </div>
