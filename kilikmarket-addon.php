@@ -13,6 +13,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 
+require __DIR__ . '/vendor/autoload.php';
+
 // 
 // 
 //  This File Is The Main Addon Class
@@ -28,7 +30,7 @@ class KilikMarket {
 	public function __construct() {
 
 		$files = [
-			'vendor/autoload.php',
+			
 			'constants.php',
 			'functions.php',
 			'hooks.php',
@@ -70,7 +72,7 @@ class KilikMarket {
 
 
 // Register Global Instance
-$GLOBALS['km'] = KilikMarket::get_instance();
+$GLOBALS['km'] 	  = KilikMarket::get_instance(); 	// KilikMarket Class
 
 // Core Hooks
 register_activation_hook( __FILE__, ['KilikMarket', 'installation']);

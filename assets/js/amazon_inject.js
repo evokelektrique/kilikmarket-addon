@@ -1,7 +1,7 @@
-var server_address = window.km_settings.origin_url;
-var search_category_element_global = document.getElementById('searchDropdownBox');
-// Category
-var category_global = search_category_element_global[search_category_element_global.selectedIndex].value.split('=')[1];
+var server_address = window.km_settings.origin_url + `?type=${window.iframe_properties.type}`;
+// var search_category_element_global = document.getElementById('searchDropdownBox');
+// // Category
+// var category_global = search_category_element_global[search_category_element_global.selectedIndex].value.split('=')[1];
 
 // Links Listener
 document.addEventListener('click', (event) => {
@@ -10,10 +10,13 @@ document.addEventListener('click', (event) => {
 	event.preventDefault();
 
 	// If the clicked element doesn't have the right selector, bail
-	if(event.target.href || event.target.parentNode.href) {
-		var url = event.target.href || event.target.parentNode.href;
-		event.target.href = window.km_settings.origin_url + "?url=" + url;
-		event.target.parentNode.href = window.km_settings.origin_url + "?url=" + url;
+	if(	event.target.href ||
+		event.target.parentNode.href || 
+		event.target.parentNode.parentNode.href) {
+
+		var url = event.target.href || event.target.parentNode.href || event.target.parentNode.parentNode.href;
+		event.target.href = server_address + "&url=" + url;
+		event.target.parentNode.href = server_address + "&url=" + url;
 		// Log the clicked element in the console
 		console.log("Fetching: ", url);
 		fetch_proxy(event.target.href);
@@ -30,42 +33,42 @@ document.getElementById('nav-search-submit-text').addEventListener('click', () =
 	// Text
 	var search_text = document.getElementById('twotabsearchtextbox').value;
 
-	var search_url = `http://localhost/wordpress_projects/kilikmarket_proxy/index.php?url=https://www.amazon.com/s?k=${search_text}&i=${category}`;
+	var search_url = `${server_address}&url=https://www.amazon.com/s?k=${search_text}&i=${category}`;
 	fetch_proxy(search_url);
 }, false);
 
 XMLHttpRequest.prototype.open = (function (open) {
     return function (method, url, async) {
         console.log('the outgoing url1 is ', url);
-        if (!url.startsWith('http://localhost/wordpress_projects/kilikmarket_proxy/index.php')) {
+        if (!url.startsWith(server_address + '')) {
             if (url.startsWith('http')) {
                 let u = url.split('/')
                 if (u[2] === "www.amazon.com" || u[2] === 'cdp.aliexpress.com' || u[2] === 'login.aliexpress.com') {
-                    url = "http://localhost/wordpress_projects/kilikmarket_proxy/index.php?url=" + url
+                    url = server_address + "&url=" + url
                     this.withCredentials = true;
                 } else if (url.indexOf('completion.amazon.com') > -1) {
-                    url = "http://localhost/wordpress_projects/kilikmarket_proxy/index.php?url=" + url;
+                    url = server_address + "&url=" + url;
                     this.withCredentials = true;
                 }
             } else if (url.startsWith('about:')) {
-                url = url.replace('about:', 'http://localhost/wordpress_projects/kilikmarket_proxy/index.php?url=https:')
+                url = url.replace('about:', server_address + '&url=https:')
                 this.withCredentials = true;
             } else if (url.startsWith('//acs.aliexpress.com') || url.startsWith('//u.alicdn.com') || url.startsWith('//www.aliexpress.com')) {
-                url = "http://localhost/wordpress_projects/kilikmarket_proxy/index.php?url=https:" + url;
+                url = server_address + "&url=https:" + url;
                 this.withCredentials = true;
             } else if (url.indexOf('/api/1.0/cart.do') > -1) {
-                url = "http://localhost/wordpress_projects/kilikmarket_proxy/index.php?url=https://shoppingcart.aliexpress.com" + url
+                url = server_address + "&url=https://shoppingcart.aliexpress.com" + url
                 this.withCredentials = true;
             } else if (url.startsWith('//fls-')) {
-                url = "http://localhost/wordpress_projects/kilikmarket_proxy/index.php?url=https:" + url;
+                url = server_address + "&url=https:" + url;
                 this.withCredentials = true;
             } else if (url.indexOf('null/gh') > -1) {
                 let correctUrl = url.split('null');
                 url = correctUrl[1];
-                url = "http://localhost/wordpress_projects/kilikmarket_proxy/index.php?url=https://www.amazon.com" + url;
+                url = server_address + "&url=https://www.amazon.com" + url;
                 this.withCredentials = true;
             } else {
-                let proxyServerAddress = "http://localhost/wordpress_projects/kilikmarket_proxy/index.php?url=https://www.amazon.com";
+                let proxyServerAddress = server_address + "&url=https://www.amazon.com";
                 if (!url.startsWith('/')) {
                     proxyServerAddress = proxyServerAddress + '/';
                 }
@@ -79,6 +82,7 @@ XMLHttpRequest.prototype.open = (function (open) {
 })(XMLHttpRequest.prototype.open);
 
 function fetch_proxy(url) {
+	create_km_spinner();
 	console.log("KILIKMARKET: Fetching: " + url);
 	fetch(url)
 		.then(response => response.text())
@@ -92,6 +96,12 @@ function km_format_links() {
 	Array.from(links).forEach(link => {
 		if(link.host != "" && link.host) {
 			link.host = "www.amazon.com";
+
+			// Fix sponsored/Related Products
+			if(link.toString().includes('slredirect')) {
+				var real_url = decodeURIComponent(link).toString().split('url=')[1]
+				link.href = link.origin + real_url;
+			}
 		}
 	});
 	console.log('KILIKMARKET: links changed');
@@ -126,12 +136,14 @@ function km_product_options() {
 	var options = [];
 	var labels 		= document.querySelectorAll("div.a-section .a-row .a-form-label");
 	var selections 	= document.querySelectorAll("div.a-section .a-row .selection");
-	if(labels) {
+	if(labels && selections) {
 		Array.from(labels).forEach((label, index) => {
-			options.push({
-				label: label.textContent.trim().replace(":", ""),
-				value: selections[index].textContent.trim()
-			});
+			if(selections[index] !== undefined) {
+				options.push({
+					label: label.textContent.trim().replace(":", ""),
+					value: selections[index].textContent.trim()
+				});
+			}
 		});
 	}
 	console.log("KILIKMARKET: Options:", options);
@@ -142,7 +154,6 @@ function km_product_options() {
 	}
 }
 
-
 // 
 // Product Status [
 // 	0: Out of stock
@@ -151,9 +162,10 @@ function km_product_options() {
 // 
 function km_get_product() {
 	// Check if product is in stock
-	var in_stock = (document.querySelectorAll("#outOfStock").length > 0) ? true : false;
+	var out_stock = (document.querySelectorAll("#outOfStock").length > 0) ? true : false;
 
-	if(in_stock) {
+	// If The Product Is Not Out Of Stock 
+	if(!out_stock) { 
 		var product = {
 			status: 1
 		};
@@ -165,8 +177,27 @@ function km_get_product() {
 		var options = km_product_options();
 
 		// Product Price
-		var price =document.getElementById('priceblock_ourprice').textContent.split("$");
-		product.price = price[1] || null;
+		if(document.getElementById('priceblock_ourprice') !== null) {
+			// Single Price Product
+			var price = document.getElementById('priceblock_ourprice').textContent.split("$");
+			product.price = price[1].trim() || null;
+
+		} else if(document.getElementById('price_inside_buybox') !== null) {
+			// Single Price Product
+			var price = document.getElementById('price_inside_buybox').textContent.split("$");
+			product.price = price[1].trim() || null;
+
+		} else if(document.querySelector('[data-action="show-all-offers-display"] .a-size-base') !== null) {
+			// Multi Price Product
+			var price = document.querySelector('[data-action="show-all-offers-display"] .a-size-base').textContent.split("$");
+			product.price = price[1].trim() || null;
+
+		} else {
+			// No Price Found
+			return {
+				status: 0
+			};
+		}
 
 		// Assign Options To Product
 		product.options = options;
@@ -174,19 +205,68 @@ function km_get_product() {
 		// Assing Image To Product
 		product.image = image.dataset.oldHires || null;
 
+		// Assing Weight To Product
+		var weight_types = ['ounces', 'pounds'];
+		// Query and select all related product information
+		Array.from(document.querySelectorAll('td.a-size-base')).forEach((item, index) => {
+			weight_types.forEach(type => {
+				if(item.textContent.includes(type)) {
+					// Find And Trim And Split The Weight From The Given Types
+					var weight = Array.from(document.querySelectorAll('td.a-size-base'))[index].textContent.trim().split(type)[0].trim()
+					// Assign Weight Values To Product
+					product.weight 			= weight;
+					product.weight_type 	= type;
+					product.weight_to_gram 	= null;
+					// Convert Type To Gram
+					switch(type) {
+						case "ounces":
+							// Formula For Ounces
+							product.weight_to_gram 	= Math.round(weight * 28.35); 
+							break
+
+						case "pounds":
+							// Formula For Pounds
+							product.weight_to_gram 	= Math.round(weight * 454); 
+							break;
+					}
+				}
+			});
+		});
+
 		return product;
+
 	} else {
+		// Product Is Out Of Stock
 		return {
 			status: 0
 		}
 	}
 }
 
+function remove_km_spinner() {
+	var loader = window.parent.document.getElementById("loading_iframe");
+	if(loader) {
+		loader.style.display = 'none';
+	}
+}
+
+function create_km_spinner() {
+	var loader = window.parent.document.getElementById("loading_iframe");
+	if(loader) {
+		loader.style.display = 'block';
+	}
+}
 
 // Main functions
 function kilikmartket_main() {
 	km_format_links();
 	km_product_options();
+	remove_km_spinner();
+
+	// Scroll To Top
+	document.body.scrollTop = 0; // For Safari
+	document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
+
 	alert('complete');
 }
 

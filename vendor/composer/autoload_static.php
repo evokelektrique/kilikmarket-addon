@@ -11,6 +11,7 @@ class ComposerStaticInit3f6bb597ce055469457d78f753628074
         'c964ee0ededf28c96ebd9db5099ef910' => __DIR__ . '/..' . '/guzzlehttp/promises/src/functions_include.php',
         'a0edc8309cc5e1d60e3047b5df6b7052' => __DIR__ . '/..' . '/guzzlehttp/psr7/src/functions_include.php',
         '37a3dc5111fe8f707ab4c132ef1dbc62' => __DIR__ . '/..' . '/guzzlehttp/guzzle/src/functions_include.php',
+        '6632f90381dd49c5fe745d09406b9abb' => __DIR__ . '/..' . '/htmlburger/carbon-field-number/field.php',
     );
 
     public static $prefixLengthsPsr4 = array (
@@ -24,6 +25,11 @@ class ComposerStaticInit3f6bb597ce055469457d78f753628074
             'GuzzleHttp\\Psr7\\' => 16,
             'GuzzleHttp\\Promise\\' => 19,
             'GuzzleHttp\\' => 11,
+        ),
+        'C' => 
+        array (
+            'Carbon_Fields\\' => 14,
+            'Carbon_Field_Number\\' => 20,
         ),
     );
 
@@ -47,6 +53,14 @@ class ComposerStaticInit3f6bb597ce055469457d78f753628074
         'GuzzleHttp\\' => 
         array (
             0 => __DIR__ . '/..' . '/guzzlehttp/guzzle/src',
+        ),
+        'Carbon_Fields\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/htmlburger/carbon-fields/core',
+        ),
+        'Carbon_Field_Number\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/htmlburger/carbon-field-number/core',
         ),
     );
 

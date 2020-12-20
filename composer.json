@@ -1,5 +1,7 @@
 {
     "require": {
-        "guzzlehttp/guzzle": "^7.0"
+        "guzzlehttp/guzzle": "^7.2",
+        "htmlburger/carbon-fields": "^3.2",
+        "htmlburger/carbon-field-number": "^3.0"
     }
 }
