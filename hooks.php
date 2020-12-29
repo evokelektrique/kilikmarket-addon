@@ -36,3 +36,9 @@ add_action( 'wp_enqueue_scripts', ['KilikMarketFunctions', 'register_styles'] );
 
 add_action( 'carbon_fields_register_fields', ['KilikMarketFunctions', 'theme_options'] );
 add_action( 'after_setup_theme', ['KilikMarketFunctions', 'carbon_fields_load'] );
+
+
+// Product Information Hook
+add_filter( 'woocommerce_product_data_tabs', ['KilikMarketFunctions', 'km_product_information_tab'], 10, 1 );
+add_action( 'woocommerce_product_data_panels', ['KilikMarketFunctions', 'km_product_information_data'] );
+

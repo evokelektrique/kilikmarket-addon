@@ -1,0 +1,216 @@
+.overflow-y-hidden {
+  overflow-y: hidden;
+}
+
+.shopping_websites {
+  display: flex;
+  min-height: 50px;
+}
+
+.shopping_websites > span {
+  flex: 1;
+  background-size: auto;
+  background-repeat: no-repeat;
+  background-position: center center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.shopping_websites > span.activate,
+.shopping_websites > span:hover {
+  background-color: rgba(114, 115, 115, 0.26);
+}
+
+/* Amazon (com)*/
+
+#amazon_website {
+  background-image: url(./images/amazon.png?f54fbddb96835ea177261c8c8f829ec3);
+}
+
+/* Amazon (ae)*/
+
+#amazonae_website {
+  background-image: url(./images/amazonae.png?d8f5f9193b1a425e8434f3204cfb2325);
+}
+
+/* Ebay */
+
+#ebay_website {
+  background-image: url(./images/ebay.png?84053bae15b5048a6e779f273ee0a311);
+}
+
+/* 6PM */
+
+#sixpm_website {
+  background-image: url(./images/sixpm.png?769d1359acdf749e1148f0205f43a25c);
+}
+
+/* AliExpress */
+
+#aliexpress_website {
+  background-image: url(./images/aliexpress.png?d439c07f22bf904dd9b17f0585d81a61);
+}
+
+#shopping_website_iframe {
+  position: relative;
+}
+
+#exit_button {
+  flex: none;
+  display: none;
+  margin: auto;
+  height: 40px;
+  margin-left: 10px;
+  margin-right: 10px;
+  background-color: #fff;
+  border-radius: 30px;
+  border: 2px solid #000;
+  width: 40px;
+  background-image: url(./images/cancel.png?4cb2957880b225a83e732e929f7c1707);
+}
+
+#exit_button:hover {
+  background-color: #ff8e8e;
+}
+
+#km_iframe_spinner {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  background: #f9f9f9;
+  place-items: center;
+  top: 0;
+  z-index: 99999999;
+  right: 0;
+  display: flex;
+}
+
+/* Spinner */
+
+.sk-folding-cube {
+  margin: 20px auto;
+  width: 40px;
+  height: 40px;
+  position: relative;
+  transform: rotateZ(45deg);
+}
+
+.sk-folding-cube .sk-cube {
+  float: left;
+  width: 50%;
+  height: 50%;
+  position: relative;
+  transform: scale(1.1);
+}
+
+.sk-folding-cube .sk-cube:before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #333;
+  -webkit-animation: sk-foldCubeAngle 2.4s infinite linear both;
+  animation: sk-foldCubeAngle 2.4s infinite linear both;
+  transform-origin: 100% 100%;
+}
+
+.sk-folding-cube .sk-cube2 {
+  transform: scale(1.1) rotateZ(90deg);
+}
+
+.sk-folding-cube .sk-cube3 {
+  transform: scale(1.1) rotateZ(180deg);
+}
+
+.sk-folding-cube .sk-cube4 {
+  transform: scale(1.1) rotateZ(270deg);
+}
+
+.sk-folding-cube .sk-cube2:before {
+  -webkit-animation-delay: 0.3s;
+  animation-delay: 0.3s;
+}
+
+.sk-folding-cube .sk-cube3:before {
+  -webkit-animation-delay: 0.6s;
+  animation-delay: 0.6s;
+}
+
+.sk-folding-cube .sk-cube4:before {
+  -webkit-animation-delay: 0.9s;
+  animation-delay: 0.9s;
+}
+
+@-webkit-keyframes sk-foldCubeAngle {
+  0%, 10% {
+    transform: perspective(140px) rotateX(-180deg);
+    opacity: 0;
+  }
+
+  25%, 75% {
+    transform: perspective(140px) rotateX(0deg);
+    opacity: 1;
+  }
+
+  90%, 100% {
+    transform: perspective(140px) rotateY(180deg);
+    opacity: 0;
+  }
+}
+
+@keyframes sk-foldCubeAngle {
+  0%, 10% {
+    transform: perspective(140px) rotateX(-180deg);
+    opacity: 0;
+  }
+
+  25%, 75% {
+    transform: perspective(140px) rotateX(0deg);
+    opacity: 1;
+  }
+
+  90%, 100% {
+    transform: perspective(140px) rotateY(180deg);
+    opacity: 0;
+  }
+}
+
+#shopping_website_container {
+  margin: 0;
+  max-width: 100%;
+  width: 100%;
+}
+
+#shopping_website_container.activate {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  z-index: 99999;
+  display: flex;
+  background: white;
+  flex-direction: column;
+}
+
+#shopping_website_container.activate .shopping_websites {
+  flex: 1;
+  border-bottom: 1px solid rgba(114, 115, 115, 0.26);
+}
+
+#shopping_website_container.activate #exit_button {
+  display: block;
+}
+
+#external_add_to_cart_container {
+  position: fixed;
+  z-index: 99999;
+  bottom: 0;
+  width: 100%;
+  max-width: 100%;
+  text-align: center;
+}
+

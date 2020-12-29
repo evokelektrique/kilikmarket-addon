@@ -19,3 +19,29 @@
 h2, h3 {
 	@extend %default-font;
 }
+
+#km_product_information table {
+	width: inherit;
+    text-align: right;
+    background: #3a3a3a;
+    color: #fff;
+    height: 100%;
+    position: absolute;
+    font-size: 15px;
+    text-align: center;
+
+	th {
+		font-size: 16px;
+		background: #484848;
+	}
+
+    td {
+		font-size: 15px;
+    	font-family: sans-serif;
+	}
+}
+#km_product_information table,
+#km_product_information table th,
+#km_product_information table td {
+	border-collapse: collapse;
+}

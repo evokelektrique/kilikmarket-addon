@@ -15,3 +15,30 @@ h3 {
   font-family: tahoma !important;
 }
 
+#km_product_information table {
+  width: inherit;
+  text-align: right;
+  background: #3a3a3a;
+  color: #fff;
+  height: 100%;
+  position: absolute;
+  font-size: 15px;
+  text-align: center;
+}
+
+#km_product_information table th {
+  font-size: 16px;
+  background: #484848;
+}
+
+#km_product_information table td {
+  font-size: 15px;
+  font-family: sans-serif;
+}
+
+#km_product_information table,
+#km_product_information table th,
+#km_product_information table td {
+  border-collapse: collapse;
+}
+

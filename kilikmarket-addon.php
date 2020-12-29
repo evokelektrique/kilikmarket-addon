@@ -68,11 +68,14 @@ class KilikMarket {
 			include_once(plugin_dir_path( __FILE__ ).$file);
 		}
 	}
+
+	public function get_cart() {
+	}
 }
 
 
 // Register Global Instance
 $GLOBALS['km'] 	  = KilikMarket::get_instance(); 	// KilikMarket Class
-
+$km->get_cart();
 // Core Hooks
 register_activation_hook( __FILE__, ['KilikMarket', 'installation']);

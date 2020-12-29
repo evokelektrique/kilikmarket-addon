@@ -32,10 +32,10 @@ XMLHttpRequest.prototype.open = (function (open) {
         if (!url.startsWith(server_address + '')) {
             if (url.startsWith('http')) {
                 let u = url.split('/')
-                if (u[2] === "www.amazon.com" || u[2] === 'cdp.aliexpress.com' || u[2] === 'login.aliexpress.com') {
+                if (u[2] === "www.ebay.co.uk" || u[2] === 'cdp.aliexpress.com' || u[2] === 'login.aliexpress.com') {
                     url = server_address + "&url=" + url
                     this.withCredentials = true;
-                } else if (url.indexOf('completion.amazon.com') > -1) {
+                } else if (url.indexOf('completion.ebay.co.uk') > -1) {
                     url = server_address + "&url=" + url;
                     this.withCredentials = true;
                 }
@@ -54,10 +54,10 @@ XMLHttpRequest.prototype.open = (function (open) {
             } else if (url.indexOf('null/gh') > -1) {
                 let correctUrl = url.split('null');
                 url = correctUrl[1];
-                url = server_address + "&url=https://www.amazon.com" + url;
+                url = server_address + "&url=https://www.ebay.co.uk" + url;
                 this.withCredentials = true;
             } else {
-                let proxyServerAddress = server_address + "&url=https://www.amazon.com";
+                let proxyServerAddress = server_address + "&url=https://www.ebay.co.uk";
                 if (!url.startsWith('/')) {
                     proxyServerAddress = proxyServerAddress + '/';
                 }
@@ -85,7 +85,7 @@ function km_format_links() {
 	// Loop Through All Links On Current Document And Prepend The Proxy Path
 	Array.from(links).forEach(link => {
 		if(link.host != "" && link.host) {
-			link.host = "www.amazon.com";
+			link.host = "www.ebay.co.uk";
 
 			// Fix sponsored/Related Products
 			if(link.toString().includes('slredirect')) {
@@ -102,7 +102,7 @@ function km_format_links() {
 		Array.from(options).forEach(link => {
 			if(link.hasChildNodes()) {
 				link.childNodes[0].addEventListener('click', () => {
-					fetch_proxy('https://amazon.com' + JSON.parse(link.dataset.sRefSelected).url);
+					fetch_proxy('https://ebay.co.uk' + JSON.parse(link.dataset.sRefSelected).url);
 				});
 			}
 		});
@@ -206,21 +206,21 @@ function km_get_product() {
 		// Product Price
 		if(document.getElementById('priceblock_ourprice') !== null) {
 			// Single Price Product
-			var price = document.getElementById('priceblock_ourprice').textContent.split("$");
+			var price = document.getElementById('priceblock_ourprice').textContent.split("AED");
 			product.price 	 = price[1].trim().replace(',', '') || null;
-			product.currency = "USD";
+			product.currency = "AED";
 
 		} else if(document.getElementById('price_inside_buybox') !== null) {
 			// Single Price Product
-			var price = document.getElementById('price_inside_buybox').textContent.split("$");
+			var price = document.getElementById('price_inside_buybox').textContent.split("AED");
 			product.price 	 = price[1].trim().replace(',', '') || null;
-			product.currency = "USD";
+			product.currency = "AED";
 
 		} else if(document.querySelector('[data-action="show-all-offers-display"] .a-size-base') !== null) {
 			// Multi Price Product
-			var price = document.querySelector('[data-action="show-all-offers-display"] .a-size-base').textContent.split("$");
+			var price = document.querySelector('[data-action="show-all-offers-display"] .a-size-base').textContent.split("AED");
 			product.price 	 = price[1].trim().replace(',', '') || null;
-			product.currency = "USD";
+			product.currency = "AED";
 
 		} else {
 			// No Price Found
@@ -242,7 +242,7 @@ function km_get_product() {
 		}
 
 		// Assing Weight To Product
-		var weight_types = ['ounces', 'pounds', 'kg'];
+		var weight_types = ['ounces', 'pounds', 'kg', 'g'];
 		// Query and select all related product information
 		Array.from(document.querySelectorAll('td.a-size-base')).forEach((item, index) => {
 			weight_types.forEach(type => {
@@ -322,7 +322,7 @@ function kilikmartket_main() {
 			// Text
 			var search_text = document.getElementById('twotabsearchtextbox').value;
 
-			var search_url = `${server_address}&url=https://www.amazon.com/s?k=${search_text}&i=${category}`;
+			var search_url = `${server_address}&url=https://www.ebay.co.uk/s?k=${search_text}&i=${category}`;
 			fetch_proxy(search_url);
 		}, false);
 	});
