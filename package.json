@@ -32,6 +32,7 @@
   },
   "dependencies": {
     "@woocommerce/woocommerce-rest-api": "^1.0.1",
+    "toastify-js": "^1.9.3",
     "woocommerce-api": "^1.5.0"
   }
 }

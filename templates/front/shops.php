@@ -12,14 +12,11 @@
       <!-- Exit button -->
       <span class="shopping_website_trigger" id="exit_button"></span>
 
-      <!-- ebay -->
-      <span class="shopping_website_trigger" data-target="4" id="ebay_website"></span>
-
       <!-- aliexpress -->
       <span class="shopping_website_trigger" data-target="3" id="aliexpress_website"></span>
 
       <!-- sixpm -->
-      <span class="shopping_website_trigger" data-target="2" id="sixpm_website"></span>
+      <span class="shopping_website_trigger" data-target="2" id="amazontr_website"></span>
 
       <!-- amazonae -->
       <span class="shopping_website_trigger" data-target="1" id="amazonae_website"></span>
@@ -46,8 +43,22 @@
 </div>
 
 <div id="external_add_to_cart_container" style="display: none">
-	<button id="external_add_to_cart">Add To Cart</button>
-	<button id="external_calculate">Calculate</button>
+	<button id="external_add_to_favorites">
+    <div class="spinner" style="display: none;">
+      <div class="double-bounce1"></div>
+      <div class="double-bounce2"></div>
+    </div>
+    <span>افزودن به علاقه مندی ها </span>
+  </button>
+  <button id="external_add_to_cart">
+    <div class="spinner" style="display: none;">
+      <div class="double-bounce1"></div>
+      <div class="double-bounce2"></div>
+    </div>
+    <span>اضافه به سبد خرید</span>
+  </button>
+	<button disabled="" id="external_calculate">محاسبه قیمت</button>
 </div>
 
+<!-- Remove later -->
 <div id="test_container"></div>

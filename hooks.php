@@ -16,6 +16,9 @@ add_shortcode( 'proxy', ['KilikMarketFunctions', 'proxy_template'] );
 // Shopping Websites Tabs Shortcode
 add_shortcode( 'shops', ['KilikMarketFunctions', 'shops_template'] );
 
+// Shopping Websites Tabs Shortcode
+add_shortcode( 'favorites', ['KilikMarketFunctions', 'favorites_template'] );
+
 // Register Style and Scripts
 // Admin
 add_action( 'admin_enqueue_scripts', ['KilikMarketFunctions', 'register_styles'] );
@@ -28,9 +31,11 @@ add_action( 'wp_enqueue_scripts', ['KilikMarketFunctions', 'register_styles'] );
 
 
 
-// // Ajax Fetch Items
-// add_action( 'wp_ajax_nopriv_fetch', ['BarhanMediaFunctions', 'fetch']);
-// add_action( 'wp_ajax_fetch', ['BarhanMediaFunctions', 'fetch']);
+// 
+// Ajax
+// 
+add_action( 'wp_ajax_nopriv_get_currencies', ['KilikMarketFunctions', 'get_currencies']);
+add_action( 'wp_ajax_get_currencies', ['KilikMarketFunctions', 'get_currencies']);
 
 
 

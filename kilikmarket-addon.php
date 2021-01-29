@@ -76,6 +76,5 @@ class KilikMarket {
 
 // Register Global Instance
 $GLOBALS['km'] 	  = KilikMarket::get_instance(); 	// KilikMarket Class
-$km->get_cart();
 // Core Hooks
 register_activation_hook( __FILE__, ['KilikMarket', 'installation']);

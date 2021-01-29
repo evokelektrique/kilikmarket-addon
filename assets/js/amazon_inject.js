@@ -1,8 +1,13 @@
-var server_address = window.km_settings.origin_url + `?type=${window.iframe_properties.type}`;
+console.log("KM_LOG: ", parent.settings);
+var server_address = parent.settings.origin_url + `?type=${window.km_iframe_type}`;
 var km_current_url = "";
 // var search_category_element_global = document.getElementById('searchDropdownBox');
 // // Category
 // var category_global = search_category_element_global[search_category_element_global.selectedIndex].value.split('=')[1];
+
+function get_current_url() {
+	return km_current_url;
+}
 
 // Links Listener
 document.addEventListener('click', (event) => {
@@ -16,8 +21,8 @@ document.addEventListener('click', (event) => {
 		event.target.parentNode.parentNode.href) {
 
 		var url = event.target.href || event.target.parentNode.href || event.target.parentNode.parentNode.href;
-		event.target.href = server_address + "&url=" + url;
-		event.target.parentNode.href = server_address + "&url=" + url;
+		event.target.href = parent.settings.origin_url + `?type=${window.km_iframe_type}` + "&url=" + url;
+		event.target.parentNode.href = parent.settings.origin_url + `?type=${window.km_iframe_type}` + "&url=" + url;
 		// Log the clicked element in the console
 		console.log("Fetching: ", url);
 		fetch_proxy(event.target.href);
@@ -29,35 +34,35 @@ document.addEventListener('click', (event) => {
 XMLHttpRequest.prototype.open = (function (open) {
     return function (method, url, async) {
         console.log('the outgoing url1 is ', url);
-        if (!url.startsWith(server_address + '')) {
+        if (!url.startsWith(parent.settings.origin_url + `?type=${window.km_iframe_type}` + '')) {
             if (url.startsWith('http')) {
                 let u = url.split('/')
                 if (u[2] === "www.amazon.com" || u[2] === 'cdp.aliexpress.com' || u[2] === 'login.aliexpress.com') {
-                    url = server_address + "&url=" + url
+                    url = parent.settings.origin_url + `?type=${window.km_iframe_type}` + "&url=" + url
                     this.withCredentials = true;
                 } else if (url.indexOf('completion.amazon.com') > -1) {
-                    url = server_address + "&url=" + url;
+                    url = parent.settings.origin_url + `?type=${window.km_iframe_type}` + "&url=" + url;
                     this.withCredentials = true;
                 }
             } else if (url.startsWith('about:')) {
-                url = url.replace('about:', server_address + '&url=https:')
+                url = url.replace('about:', parent.settings.origin_url + `?type=${window.km_iframe_type}` + '&url=https:')
                 this.withCredentials = true;
             } else if (url.startsWith('//acs.aliexpress.com') || url.startsWith('//u.alicdn.com') || url.startsWith('//www.aliexpress.com')) {
-                url = server_address + "&url=https:" + url;
+                url = parent.settings.origin_url + `?type=${window.km_iframe_type}` + "&url=https:" + url;
                 this.withCredentials = true;
             } else if (url.indexOf('/api/1.0/cart.do') > -1) {
-                url = server_address + "&url=https://shoppingcart.aliexpress.com" + url
+                url = parent.settings.origin_url + `?type=${window.km_iframe_type}` + "&url=https://shoppingcart.aliexpress.com" + url
                 this.withCredentials = true;
             } else if (url.startsWith('//fls-')) {
-                url = server_address + "&url=https:" + url;
+                url = parent.settings.origin_url + `?type=${window.km_iframe_type}` + "&url=https:" + url;
                 this.withCredentials = true;
             } else if (url.indexOf('null/gh') > -1) {
                 let correctUrl = url.split('null');
                 url = correctUrl[1];
-                url = server_address + "&url=https://www.amazon.com" + url;
+                url = parent.settings.origin_url + `?type=${window.km_iframe_type}` + "&url=https://www.amazon.com" + url;
                 this.withCredentials = true;
             } else {
-                let proxyServerAddress = server_address + "&url=https://www.amazon.com";
+                let proxyServerAddress = parent.settings.origin_url + `?type=${window.km_iframe_type}` + "&url=https://www.amazon.com";
                 if (!url.startsWith('/')) {
                     proxyServerAddress = proxyServerAddress + '/';
                 }
@@ -173,7 +178,8 @@ function km_get_product() {
 	if(!out_stock) { 
 		var product = {
 			url: km_current_url,
-			status: 1
+			status: 1,
+			options_status: true
 		};
 
 		// Product Title
@@ -241,8 +247,9 @@ function km_get_product() {
 			product.image = JSON.parse(image.dataset.aDynamicImage) || null;
 		}
 
+		
 		// Assing Weight To Product
-		var weight_types = ['ounces', 'pounds', 'kg'];
+		var weight_types = ['ounces', 'pounds', 'g'];
 		// Query and select all related product information
 		Array.from(document.querySelectorAll('td.a-size-base')).forEach((item, index) => {
 			weight_types.forEach(type => {
@@ -250,34 +257,30 @@ function km_get_product() {
 					// Find And Trim And Split The Weight From The Given Types
 					var weight = Array.from(document.querySelectorAll('td.a-size-base'))[index].textContent.trim().split(type)[0].trim()
 					// Assign Weight Values To Product
-					product.weight 			= weight;
-					product.weight_type 	= type;
-					product.weight_to_gram 	= null;
-					// Convert Type To Gram
+					product.weight 				= weight;
+					product.weight_type 		= type;
+					product.weight_to_kilogram 	= null;
+					// Convert Type To KiloGram
 					switch(type) {
 						case "ounces":
 							// Formula For Ounces
-							product.weight_to_gram 	= Math.round(weight * 28.35); 
+							product.weight_to_kilogram = Math.round(weight * 35.274); 
 							break
 
 						case "pounds":
 							// Formula For Pounds
-							product.weight_to_gram 	= Math.round(weight * 454); 
-							break;
-
-						case 'kg':
-							// Formula For KiloGram
-							product.weight_to_gram 	= Math.round(weight * 1000); 
+							product.weight_to_kilogram = Math.round(weight * 2.205); 
 							break;
 
 						case 'g':
-							product.weight_to_gram 	= Math.round(weight); 
+							// Formula For Gram
+							product.weight_to_kilogram = Math.round(weight * 1000); 
 							break;
-
 					}
 				}
 			});
 		});
+
 
 		return product;
 
@@ -322,12 +325,21 @@ function kilikmartket_main() {
 			// Text
 			var search_text = document.getElementById('twotabsearchtextbox').value;
 
-			var search_url = `${server_address}&url=https://www.amazon.com/s?k=${search_text}&i=${category}`;
+			var search_url = `${parent.settings.origin_url + `?type=${window.km_iframe_type}`}&url=https://www.amazon.com/s?k=${search_text}&i=${category}`;
 			fetch_proxy(search_url);
 		}, false);
 	});
 
-	alert('complete');
+	// Remove location changer
+	var location_form = document.getElementById('sp-cc');
+	if(location_form) {
+		location_form.style.display = "none";
+	} else {
+		// Debug
+		console.log('KM_LOG: Location Changer not Found')
+	}
+
+	// alert('complete');
 }
 
 kilikmartket_main();

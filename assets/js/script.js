@@ -1,5 +1,7 @@
 import WooCommerceRestApi from "@woocommerce/woocommerce-rest-api";
-// const WooCommerceRestApi = require("@woocommerce/woocommerce-rest-api").default;
+import Toastify from 'toastify-js'
+import "toastify-js/src/toastify.css"
+window.toastify = Toastify;
 
 const api = new WooCommerceRestApi({
   url: 			      settings.base_url,
@@ -8,7 +10,41 @@ const api = new WooCommerceRestApi({
   version: 		    "wc/v3"
 });
 
+// TODO: Remove later
 console.log(settings);
+
+// Favorites
+window.add_to_favorites = function(value) {
+  // Get the existing favorites data
+  var favorites = localStorage.getItem('km_favorites');
+
+  // If no favorites, create an array
+  // Otherwise convert the localStorage string to an array
+  favorites = favorites ? favorites.split(',') : [];
+
+  // Add new data to localStorage Array
+  favorites.push(value);
+
+  // Save data into localStorage
+  localStorage.setItem('km_favorites', favorites.toString());
+}
+
+// Return an array of favorite items stored in localStorage
+window.list_favorites = function() {
+  // Get the existing favorites data
+  var favorites = localStorage.getItem('km_favorites');
+
+  // If no favorites, create an array
+  // Otherwise convert the localStorage string to an array
+  favorites = favorites ? favorites.split(',') : [];
+  
+  return favorites;  
+}
+
+window.clear_favorites = function() {
+  localStorage.setItem('km_favorites', "");
+}
+
 
 // Inject function
 function insertScript(doc, target, src, callback) {
@@ -37,45 +73,88 @@ function insertScript(doc, target, src, callback) {
 // Price calculator
 function calculate_price(product) {
 
-  // Multiple Product Price With Gram Unit
-  var weight_price = product.weight_to_gram * settings.price_per_gram;
+  var weight_status = true;
+  var shipment_price, // Shipment Price In USD
+      exchange_rate, // Exchange Rate In IRR
+      clearance_price, // TODO: fix it
+      fee_price; // TODO: fix it
 
-  var price = null;
-  // Calculate Iranian Toman Price
-  switch(product.currency) {
-    // Convert To USD
-    case "USD":
-      price = parseInt(product.price) * parseInt(settings.usd_price);
-      break;
-
-    // Convert To AED
-    case "AED":
-      price = parseInt(product.price) * parseInt(settings.aed_price);
-      break;
-
-    // Convert To USD
-    default:
-      price = parseInt(product.price) * parseInt(settings.usd_price);
-      break;
+  // Calculate Shipment Price By Multiplying Product Price With KiloGram Unit
+  if(product.weight_to_kilogram) {
+    if(product.weight_to_kilogram <= 0.5) {
+      // Default price(TODO: Make it later & maybe not)
+      shipment_price = 10;
+    } else if(product.weight_to_kilogram > 0.5 && product.weight_to_kilogram >= 1) {
+      shipment_price = 20;
+    } else if(product.weight_to_kilogram > 1 && product.weight_to_kilogram >= 2) {
+      shipment_price = 30;
+    } else if(product.weight_to_kilogram > 2 && product.weight_to_kilogram >= 3) {
+      shipment_price = 40;
+    } else if(product.weight_to_kilogram >= 3) {
+      shipment_price = 50;
+    }
+  } else {
+    weight_status = true;
   }
 
-  // Total Toman Price
-  var iranian_toman_price = 0;
-  var weight_status       = true;
-  if(weight_price) {
-    iranian_toman_price = parseInt(price) + parseInt(weight_price) + parseInt(settings.fee_price);
+
+
+  // TODO: Calculate Clearance Price
+  clearance_price = 0;
+  // TODO: Calculate Fee Price
+  fee_price = 0;
+
+
+  // Fetch IRR Of Product Currency Price
+  fetch(settings.ajaxurl, {
+      method: "POST", 
+      body: new URLSearchParams({action: "get_currencies", currency_type: product.currency})
+    })
+  .then(response => response.json())
+  .then(data => {
+    exchange_rate = data.message.buy // Buy Price
+  })
+
+  // LEGACY
+  // switch(product.currency) {
+  //   // Convert To USD
+  //   case "USD":
+  //     price = parseInt(product.price) * parseInt(settings.usd_price);
+  //     break;
+
+  //   // Convert To AED
+  //   case "AED":
+  //     price = parseInt(product.price) * parseInt(settings.aed_price);
+  //     break;
+
+  //   // Convert To TL
+  //   case "TL":
+  //     price = parseInt(product.price) * parseInt("7000");
+  //     break;
+
+  //   // Convert To USD
+  //   default:
+  //     price = parseInt(product.price) * parseInt(settings.usd_price);
+  //     break;
+  // }
+
+  // Calculate Total Price In IRR
+  var irr_price = 0;
+  if(weight_status) {
+    irr_price = (product.price + clearance_price + fee_price) * exchange_rate;
   } else {
-    iranian_toman_price = parseInt(price) + parseInt(settings.fee_price);
-    weight_status = false;
+    // Without Shipment/Weight Price
+    irr_price = (product.price + fee_price) * exchange_rate;
   }
 
   return {
-    total_price:    iranian_toman_price,
-    weight_price:   weight_price,
-    weight_status:  weight_status,
-    price:          price,
-    original_price: product.price,
-    fee_price:      settings.fee_price
+    total_price:      irr_price,
+    weight_price:     weight_price, // TODO: Removed, Remove it from dashboard.
+    weight_status:    weight_status,
+    price:            price, // TODO: Changed, Change It To Base Converted Price / Exchange Rate
+    original_price:   product.price,
+    fee_price:        fee_price,
+    clearance_price:  clearance_price
   };
 }
 
@@ -83,20 +162,19 @@ function calculate_price(product) {
 // Product Creation
 async function create_product(product, price, categories) {
   return new Promise((resolve, reject) => {
+    if(!product.options_status) {
+      reject({status: 0, message: "لطفا تمامی متغیر های محصول را انتخاب کنید"});
+    }
 
     var image = "";
     // ReAlign Images
-    // Array.from(product.image).forEach(item => {
-      console.log(typeof product.image);
-      if(typeof product.image !== "string") {
-        // Array.from(Object.keys(product.image)).forEach(src => {
-          // console.log(src);
-        image = Array.from(Object.keys(product.image))[0];
-        // });
-      } else {
-        image = product.image;
-      }
-    // });
+    if(typeof product.image !== "string") {
+      image = Array.from(Object.keys(product.image))[0];
+    } else {
+      image = product.image;
+    }
+    // Remove Proxy Url From Image Url
+    image = image.replace(settings.img_proxy_url, "")
 
     var title = product.title;
     var type  = 'simple';
@@ -149,7 +227,7 @@ async function create_product(product, price, categories) {
 
     }).catch((error) => {
       console.log(error.response.data);
-      reject({data: error.response.data, status: 0});
+      reject({data: error.response.data, status: 0, message: "مشکلی رخ داد دوباره تلاش کنید" });
     });
   }); 
 }
@@ -264,23 +342,29 @@ Array.from(document.getElementsByClassName("shopping_website_trigger")).forEach(
     //  1: AmazonAE
     //  2: 6PM
     //  3: AliExpress
-    //  4: Ebay
     var iframe_variation  = parseInt(_this.dataset.target);
     var iframe_variations = {
-      0: {url: "https://amazon.com", name: "amazon"},
-      1: {url: "https://www.amazon.ae", name: "amazonae"},
-      2: {url: "https://www.6pm.com", name: "sixpm"},
-      3: {url: "https://www.aliexpress.com", name: "aliexpress"},
-      4: {url: "https://www.ebay.co.uk", name: "ebay"}
+      // Custom means it's amazon or dedicated
+      0: {url: "https://amazon.com", name: "amazon", custom: true},
+      1: {url: "https://www.amazon.ae", name: "amazonae", custom: true},
+      2: {url: "https://www.amazon.com.tr", name: "amazontr", custom: true},
+      3: {url: "https://www.aliexpress.com", name: "aliexpress", custom: false},
     };
     var iframe_base_url = iframe_variations[iframe_variation].url;
     var iframe_name     = iframe_variations[iframe_variation].name;
+    var custom          = iframe_variations[iframe_variation].custom;
 
     // Create Iframe Element Based On Event's Dataset Target
     var iframe = document.createElement('iframe');
     // Define iframe properties
     iframe.id           = "km_iframe";
-    iframe.src          = `${settings.origin_url}?type=${iframe_variation}&url=${iframe_base_url}`;
+    if(custom) {
+      iframe.src = `${settings.origin_url}?type=${iframe_variation}&url=${iframe_base_url}`;
+    } else {
+    //   iframe.src = `${iframe_base_url}`;
+    //   iframe.setAttribute("is", "x-frame-bypass");
+      document.getElementById('loading_iframe').style.display = 'none';
+    }
     iframe.width        = "100%";
     iframe.height       = "600";
     iframe.style.border = "0";
@@ -298,7 +382,6 @@ Array.from(document.getElementsByClassName("shopping_website_trigger")).forEach(
         variation: iframe_variations[iframe_variation]
       };
 
-      // Inject Script
       insertScript(doc, head, settings.plugin_dir + `assets/js/${iframe_name}_inject.js`);
 
       // Add to cart button event
@@ -316,7 +399,7 @@ Array.from(document.getElementsByClassName("shopping_website_trigger")).forEach(
           // Calculate And Covert Price
           var prices = calculate_price(product);
           console.log("Prices:", prices);
-          e.target.innerHTML += ` Price: ${prices.total_price}`;
+          // e.target.innerHTML += ` Price: ${prices.total_price}`;
 
           // // Create Categories
           // var categories = await create_product_categories(product) || [];
@@ -327,25 +410,188 @@ Array.from(document.getElementsByClassName("shopping_website_trigger")).forEach(
             console.log('Trying to add to card the product: ', response.data);
             add_to_cart(response.data.id).then(data => {
               console.log('Added To Cart Product_ID: ', response.data.id);
+              // Add to cart Notification
+              Toastify({
+                text: "کالا با موفقیت اضافه شد، جهت تسویه حساب اینجا کلیک کنید",
+                duration: 8000,
+                destination: settings.wc_cart_url,
+                newWindow: true,
+                close: true,
+                gravity: "bottom", // `top` or `bottom`
+                position: "left", // `left`, `center` or `right`
+                backgroundColor: "linear-gradient(to right, #00b09b, #96c93d)",
+                stopOnFocus: true, // Prevents dismissing of toast on hover
+                onClick: function(){} // Callback after click
+              }).showToast();
             });
           }).catch(error => {
             console.log(error);
+            if(error.status === 0) {
+              Toastify({
+                text: error.message,
+                duration: 8000,
+                gravity: "bottom", // `top` or `bottom`
+                position: "left", // `left`, `center` or `right`
+                backgroundColor: "linear-gradient(to right, #ff416c, #ff4b2b)",
+              }).showToast();
+            }
           });
 
         } else {
-          e.target.innerHTML += ` No Product Found`;
+          // e.target.innerHTML += ` No Product Found`;
+          Toastify({
+            text: "محصولی یافت نشد، لطفا دوباره تلاش کنید",
+            duration: 8000,
+            gravity: "bottom", // `top` or `bottom`
+            position: "left", // `left`, `center` or `right`
+            backgroundColor: "linear-gradient(to right, #ff416c, #ff4b2b)",
+          }).showToast();
         }
       }, false);
 
-      alert("complete_from_parent?");
+      // Add to favorites button event
+      document.getElementById("external_add_to_favorites").addEventListener('click', e => {
+        var url = document.getElementById('km_iframe').contentWindow.get_current_url();
+        add_to_favorites(url);
+        Toastify({
+          text: "با موفقیت اضافه شد، برای نمایش لیست کل کلیک کنید",
+          duration: 8000,
+          destination: settings.favorites_page_url,
+          newWindow: true,
+          close: true,
+          gravity: "bottom", // `top` or `bottom`
+          position: "left", // `left`, `center` or `right`
+          backgroundColor: "linear-gradient(to right, #00b09b, #96c93d)",
+          stopOnFocus: true, // Prevents dismissing of toast on hover
+          onClick: function(){} // Callback after click
+        }).showToast();
+      })      
 
       // Display the add to cart button
       document.getElementById('external_add_to_cart_container').style.display = 'block'; 
     };
 
-    // Append Iframe to container
-    container.appendChild(iframe);
+    window.add_to_cart_status = false;
+    // 
+    // CUSTOM BYPASS
+    // 
+    if(custom) {
+      // Append Iframe to container
+      container.appendChild(iframe);
+      window.add_to_cart_status = true;
+    } else { 
+      // 
+      // CORS BYPASS
+      // 
+      container.innerHTML = `<iframe id="km_iframe" src="${iframe_base_url}" is="x-frame-bypass" width="100%" height="600"></iframe>`;
+      // Add Onload Event
+      document.getElementById('km_iframe').onload = (e) => {
+        var _this_bypass_frame = e.target;
+        var doc_bypass_frame   = _this_bypass_frame.contentWindow.document;
+        var head_bypass_frame  = doc_bypass_frame.getElementsByTagName('head')[0];
 
+        var inject_settings_interval = setInterval( () => {
+          // Inject Settings Into Iframe Window
+          _this_bypass_frame.contentWindow.km_settings = settings;
+          _this_bypass_frame.contentWindow.iframe_properties = {
+            type: iframe_variation,
+            variation: iframe_variations[iframe_variation]
+          };
+        }, 1000);
+
+        // insertScript(doc_bypass_frame, head_bypass_frame, settings.plugin_dir + `assets/js/${iframe_name}_inject.js`);
+
+        window.add_to_cart_status = true;
+
+        // Display the add to cart button
+        document.getElementById('external_add_to_cart_container').style.display = 'block'; 
+      };
+    
+      // Add to cart button event
+      document.getElementById('external_add_to_cart').addEventListener('click', async e => {
+        if(window.add_to_cart_status) {
+
+          var product = document.getElementById('km_iframe').contentWindow.km_get_product();
+          console.log("Product: ", product);
+
+          // Check If Product Available
+          if(product.status > 0) {
+            // Calculate And Convert Price
+            var prices = calculate_price(product);
+            console.log("Prices:", prices);
+
+            // // Create Categories
+            // var categories = await create_product_categories(product) || [];
+            // console.log('categories created so far: ', categories);
+
+            // Create Product ( With No Categories )
+            create_product(product, prices.total_price, []).then(response => {
+              console.log('Trying to add to card the product: ', response.data);
+              add_to_cart(response.data.id).then(data => {
+                console.log('Added To Cart Product_ID: ', response.data.id);
+                // Add to cart notification
+                Toastify({
+                  text: "کالا با موفقیت اضافه شد، جهت تسویه حساب اینجا کلیک کنید",
+                  duration: 8000,
+                  destination: settings.wc_cart_url,
+                  newWindow: true,
+                  close: true,
+                  gravity: "bottom", // `top` or `bottom`
+                  position: "left", // `left`, `center` or `right`
+                  backgroundColor: "linear-gradient(to right, #00b09b, #96c93d)",
+                  stopOnFocus: true, // Prevents dismissing of toast on hover
+                  onClick: function(){} // Callback after click
+                }).showToast();
+              });
+            }).catch(error => {
+              console.log("KM_LOG: ERROR:", error);
+              if(error.status === 0) {
+                Toastify({
+                  text: error.message,
+                  duration: 8000,
+                  gravity: "bottom", // `top` or `bottom`
+                  position: "left", // `left`, `center` or `right`
+                  backgroundColor: "linear-gradient(to right, #ff416c, #ff4b2b)",
+                }).showToast();
+              }
+            });
+
+          } else {
+            // No Product Found (STATUS: 0)
+            Toastify({
+              text: "محصولی یافت نشد، لطفا دوباره تلاش کنید",
+              duration: 8000,
+              gravity: "bottom", // `top` or `bottom`
+              position: "left", // `left`, `center` or `right`
+              backgroundColor: "linear-gradient(to right, #ff416c, #ff4b2b)",
+            }).showToast();
+          }
+        } else {
+          console.log("KM_LOG: add to cart not ready yet.")
+        }
+      }, false);
+
+      // Add to favorites button event
+      document.getElementById("external_add_to_favorites").addEventListener('click', e => {
+        var url = document.getElementById('km_iframe').contentWindow.get_current_url();
+        add_to_favorites(url.toString());
+        Toastify({
+          text: "با موفیت به لیست علاقه مندی ها اضافه شد.، برای نمایش لیست 'علاقه مندی ها' کلیک کنید.",
+          duration: 8000,
+          destination: settings.favorites_page_url,
+          newWindow: true,
+          close: true,
+          gravity: "bottom", // `top` or `bottom`
+          position: "left", // `left`, `center` or `right`
+          backgroundColor: "linear-gradient(to right, #00b09b, #96c93d)",
+          stopOnFocus: true, // Prevents dismissing of toast on hover
+          onClick: function(){} // Callback after click
+        }).showToast();
+      
+      });
+
+      
+    }
   });
 });
 

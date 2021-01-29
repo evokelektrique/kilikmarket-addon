@@ -6,6 +6,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use Carbon_Fields\Container;
 use Carbon_Fields\Field;
+use Goutte\Client;
 
 // 
 // 
@@ -78,21 +79,29 @@ class KilikMarketFunctions {
 		wp_enqueue_style( 'style' );
 
 		// Plugin Js
+		wp_register_script( 'bypass', plugin_dir_url( __FILE__ ) . 'assets/js/x-frame-bypass.js', [], null, true);
+		wp_enqueue_script( 'bypass' );
 		wp_register_script( 'script', plugin_dir_url( __FILE__ ) . 'dist/script.js', [], null, true);
 		wp_enqueue_script( 'script' );
 
 		// Set javascript objects
 		wp_localize_script( 'script', 'settings', [
 			'ajaxurl' 	 => admin_url('admin-ajax.php'),
+			// Translations / ترجمه ها
+			'tl_checkout' 	 => __( 'تسویه پرداخت', "kilikmarket-addon" ),
 			'plugin_dir' => plugin_dir_url( __FILE__ ),
 			'origin_url' => self::$origin_url,
 			'base_url' 	 => get_home_url(),
+			'img_proxy_url' => "http://localhost/wordpress_projects/kilikmarket_proxy/img_proxy.php?url=",
+			'wc_cart_url' => wc_get_cart_url(),
 			'wc_ck'		 => carbon_get_theme_option('km_wc_ck'),
 			'wc_cs'		 => carbon_get_theme_option('km_wc_cs'),
-			'fee_price' 	 => carbon_get_theme_option('km_fee_price'),
-			'price_per_gram' => carbon_get_theme_option('km_price_per_gram'),
-			'usd_price' 	 => carbon_get_theme_option('km_usd_price'),
-			'aed_price' 	 => carbon_get_theme_option('km_aed_price'),
+			// 'fee_price' 	 => carbon_get_theme_option('km_fee_price'),
+			// 'price_per_gram' => carbon_get_theme_option('km_price_per_gram'),
+			// 'usd_price' 	 => carbon_get_theme_option('km_usd_price'),
+			// 'aed_price' 	 => carbon_get_theme_option('km_aed_price'),
+			'favorites_page_url' => carbon_get_theme_option('km_favorites_page')
+			
 		]);
 	}
 
@@ -108,6 +117,11 @@ class KilikMarketFunctions {
 	// Shopping Webistes Tabs Template
 	public static function shops_template($arguments = []) {
 		include_once(KM_ROOT . 'templates/front/shops.php');
+	}
+
+	// Favorites List Template
+	public static function favorites_template($arguments = []) {
+		include_once(KM_ROOT . 'templates/front/favorites.php');
 	}
 
 	// Generates An Iframe HTML Element
@@ -138,7 +152,14 @@ class KilikMarketFunctions {
 	// }
 
 	public static function theme_options() {
-		
+		$temp_pages = get_pages(); 
+		$pages = [];
+		foreach ( $temp_pages as $page ) {
+			$page_link = get_page_link( $page->ID );
+			$page_title = $page->post_title;
+			$pages[$page_link] = $page_title;
+		}
+
 	    Container::make( 'theme_options', __( 'کیلیک مارکت' ) )
 	    	->set_page_file('kilikmarket-options')
 	    	->set_page_menu_position(1)
@@ -151,12 +172,17 @@ class KilikMarketFunctions {
 				Field::make( 'text', 'km_wc_cs', __( 'کلید مخفی API ووکامرس' ) )
 				    ->set_attribute( 'placeholder', 'cs_' ),
 
-				// Prices
-			    Field::make( 'separator', 'km_prices_seperator', __( 'قیمت ها' ) ),
-				Field::make( 'number', 'km_fee_price', __( 'مقدار کارمزد' ) ),
-				Field::make( 'number', 'km_price_per_gram', __( 'قیمت واحد بر هر 100 گرم' ) ),
-				Field::make( 'number', 'km_usd_price', __( 'قیمت دلار' ) ),
-				Field::make( 'number', 'km_aed_price', __( 'قیمت درهم امارات' ) ),
+				// // Prices
+			    // Field::make( 'separator', 'km_prices_seperator', __( 'قیمت ها' ) ),
+				// Field::make( 'number', 'km_fee_price', __( 'مقدار کارمزد' ) ),
+				// Field::make( 'number', 'km_price_per_gram', __( 'قیمت واحد بر هر 100 گرم' ) ),
+				// Field::make( 'number', 'km_usd_price', __( 'قیمت دلار' ) ),
+				// Field::make( 'number', 'km_shipment_price', __( 'قیمت حمل (دلار)' ) ),
+
+				// Pages
+			    Field::make( 'separator', 'km_favorites_seperator', __( 'صفحه ها' ) ),
+				Field::make( 'select', 'km_favorites_page', 'صفحه لیست علاقه مندی ها' )
+				->add_options($pages)
 
 	        ]
 	    );
@@ -186,45 +212,7 @@ class KilikMarketFunctions {
 			$options = array_values(json_decode($product_options_meta_data));
 
 			// Details
-			// var_dump($product_details_meta_data);
 			$details = json_decode($product_details_meta_data);
-			// var_dump($details);
-			//    public 'total_price' => int 327000
-			//    public 'weight_price' => null
-			//    public 'weight_status' => boolean false
-			//    public 'price' => int 322000
-			//    public 'original_price' => string '46.00' (length=5)
-			//    public 'fee_price' => string '5000' (length=4)
-			// $details->prices->total_price;
-
-			// public 'product' => 
-			//     object(stdClass)[16314]
-			//       public 'status' => int 1
-			//       public 'title' => string 'HP 123 Black Original Ink Advantage Cartridge - F6V17AE' (length=55)
-			//       public 'description' => string '...' (length=451)
-			//       public 'categories' => 
-			//         array (size=5)
-			//           0 => string 'Computers' (length=9)
-			//           1 => string 'Printers & Accessories' (length=22)
-			//           2 => string 'Printer Accessories' (length=19)
-			//           3 => string 'Printer Ink, Toner & Ribbons' (length=28)
-			//           4 => string 'Ink Cartridges' (length=14)
-			//       public 'price' => string '46.00' (length=5)
-			//       public 'currency' => string 'AED' (length=3)
-			//       public 'options' => 
-			//         array (size=2)
-			//           0 => 
-			//             object(stdClass)[16313]
-			//               ...
-			//           1 => 
-			//             object(stdClass)[16277]
-			//               ...
-			//       public 'image' => string 'https://images-na.ssl-images-amazon.com/images/I/61lXrsBZLQL._AC_SL1280_.jpg' (length=76)
-			//       public 'weight' => string '/*
-			// * Fix for UDP-1061. Avera' (length=28)
-			//       public 'weight_type' => string 'g' (length=1)
-			//       public 'weight_to_gram' => null
-
 		?>
 		<div id="km_product_information" class="panel woocommerce_options_panel">
 
@@ -271,6 +259,44 @@ class KilikMarketFunctions {
 		</div>
 		<?php
 		endif;
+	}
+
+
+	// Fetch Currencies From "bonbast.com"(note: Which Is Cencored)
+	public static function get_currencies() {
+		$currency_type = isset($_POST['currency_type']) ? $_POST['currency_type'] : null;
+		if($currency_type) {
+			$client = new Client();
+			$crawler = $client->request('GET', 'http://bonbast.com/');
+
+			$temp_currencies = [];
+
+			$crawler->filter('.table tr > td')->each(function ($node) use (&$temp_currencies) {
+				$text = $node->text();
+				if($text != "Code" && $text != "Currency" && $text != "Sell" && $text != "Buy") {
+					$temp_currencies[] = $text;
+				}
+			});
+
+			$interval 	= count($temp_currencies) / 4;
+			$counter 	= 0;
+			$currencies = [];
+
+			if(!empty($temp_currencies)) {
+				while($counter <= $interval) {
+					$temp_array = array_slice($temp_currencies, $counter, 4);
+					$currencies[$temp_array[0]] = ["sell" => $temp_array[2], "buy" => $temp_array[3]];
+					$counter += 4;
+				}
+				// Found Currencies
+				wp_send_json_success(["message" => $currencies[$currency_type]]);
+			} else {
+				// Couldn't Find Currencies
+				wp_send_json_error(["message" => "Could not find any currency"]);
+			}
+		} else {
+			wp_send_json_error(["message" => "No type found"]);
+		}
 	}
 
 }
