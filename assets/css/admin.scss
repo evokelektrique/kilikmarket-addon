@@ -45,3 +45,23 @@ h2, h3 {
 #km_product_information table td {
 	border-collapse: collapse;
 }
+
+.km_fee_price {
+    direction: ltr;
+    background: #ffef9f;
+    border: none !important;
+
+    &.is-right {
+        direction: rtl;
+    }
+}
+
+.km_clearance_price {
+    direction: ltr;
+    background: #aaaaff;
+    border: none !important;
+
+    &.is-right {
+        direction: rtl;
+    }
+}

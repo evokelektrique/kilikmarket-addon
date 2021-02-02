@@ -42,3 +42,23 @@ h3 {
   border-collapse: collapse;
 }
 
+.km_fee_price {
+  direction: ltr;
+  background: #ffef9f;
+  border: none !important;
+}
+
+.km_fee_price.is-right {
+  direction: rtl;
+}
+
+.km_clearance_price {
+  direction: ltr;
+  background: #aaaaff;
+  border: none !important;
+}
+
+.km_clearance_price.is-right {
+  direction: rtl;
+}
+

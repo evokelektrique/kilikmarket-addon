@@ -126,13 +126,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var toastify_js_src_toastify_css__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(toastify_js_src_toastify_css__WEBPACK_IMPORTED_MODULE_3__);
 
 
-function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
-
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 
- // const WooCommerceRestApi = require("@woocommerce/woocommerce-rest-api").default;
 
 
 
@@ -142,7 +139,8 @@ var api = new _woocommerce_woocommerce_rest_api__WEBPACK_IMPORTED_MODULE_1__["de
   consumerKey: settings.wc_ck,
   consumerSecret: settings.wc_cs,
   version: "wc/v3"
-});
+}); // TODO: Remove later
+
 console.log(settings); // Favorites
 
 window.add_to_favorites = function (value) {
@@ -199,50 +197,85 @@ function insertScript(doc, target, src, callback) {
 
 
 function calculate_price(product) {
-  // Multiple Product Price With Gram Unit
-  var weight_price = product.weight_to_gram * settings.price_per_gram;
-  var price = null; // Calculate Iranian Toman Price
-
-  switch (product.currency) {
-    // Convert To USD
-    case "USD":
-      price = parseInt(product.price) * parseInt(settings.usd_price);
-      break;
-    // Convert To AED
-
-    case "AED":
-      price = parseInt(product.price) * parseInt(settings.aed_price);
-      break;
-    // Convert To TL
-
-    case "TL":
-      price = parseInt(product.price) * parseInt("7000");
-      break;
-    // Convert To USD
-
-    default:
-      price = parseInt(product.price) * parseInt(settings.usd_price);
-      break;
-  } // Total Toman Price
-
-
-  var iranian_toman_price = 0;
   var weight_status = true;
+  var shipment_price, // Shipment Price In USD
+  exchange_rate, // Exchange Rate In IRR
+  clearance_price, // TODO: fix it
+  fee_price; // TODO: fix it
+  // Calculate Shipment Price By Multiplying Product Price With KiloGram Unit
 
-  if (weight_price) {
-    iranian_toman_price = parseInt(price) + parseInt(weight_price) + parseInt(settings.fee_price);
+  if (product.weight_to_kilogram) {
+    if (product.weight_to_kilogram <= 0.5) {
+      // Default price(TODO: Make it later & maybe not)
+      shipment_price = 10;
+    } else if (product.weight_to_kilogram > 0.5 && product.weight_to_kilogram >= 1) {
+      shipment_price = 20;
+    } else if (product.weight_to_kilogram > 1 && product.weight_to_kilogram >= 2) {
+      shipment_price = 30;
+    } else if (product.weight_to_kilogram > 2 && product.weight_to_kilogram >= 3) {
+      shipment_price = 40;
+    } else if (product.weight_to_kilogram >= 3) {
+      shipment_price = 50;
+    }
   } else {
-    iranian_toman_price = parseInt(price) + parseInt(settings.fee_price);
-    weight_status = false;
+    weight_status = true;
+  } // TODO: Calculate Clearance Price
+
+
+  clearance_price = 0; // TODO: Calculate Fee Price
+
+  fee_price = 0; // Fetch IRR Of Product Currency Price
+
+  fetch(settings.ajaxurl, {
+    method: "POST",
+    body: new URLSearchParams({
+      action: "get_currencies",
+      currency_type: product.currency
+    })
+  }).then(function (response) {
+    return response.json();
+  }).then(function (data) {
+    exchange_rate = data.message.buy; // Buy Price
+  }); // LEGACY
+  // switch(product.currency) {
+  //   // Convert To USD
+  //   case "USD":
+  //     price = parseInt(product.price) * parseInt(settings.usd_price);
+  //     break;
+  //   // Convert To AED
+  //   case "AED":
+  //     price = parseInt(product.price) * parseInt(settings.aed_price);
+  //     break;
+  //   // Convert To TL
+  //   case "TL":
+  //     price = parseInt(product.price) * parseInt("7000");
+  //     break;
+  //   // Convert To USD
+  //   default:
+  //     price = parseInt(product.price) * parseInt(settings.usd_price);
+  //     break;
+  // }
+  // Calculate Total Price In IRR
+
+  var irr_price = 0;
+
+  if (weight_status) {
+    irr_price = (product.price + clearance_price + fee_price) * exchange_rate;
+  } else {
+    // Without Shipment/Weight Price
+    irr_price = (product.price + fee_price) * exchange_rate;
   }
 
   return {
-    total_price: iranian_toman_price,
+    total_price: irr_price,
     weight_price: weight_price,
+    // TODO: Removed, Remove it from dashboard.
     weight_status: weight_status,
     price: price,
+    // TODO: Changed, Change It To Base Converted Price / Exchange Rate
     original_price: product.price,
-    fee_price: settings.fee_price
+    fee_price: fee_price,
+    clearance_price: clearance_price
   };
 } // Product Creation
 
@@ -280,18 +313,12 @@ function _create_product() {
               }
 
               var image = ""; // ReAlign Images
-              // Array.from(product.image).forEach(item => {
-
-              console.log(_typeof(product.image));
 
               if (typeof product.image !== "string") {
-                // Array.from(Object.keys(product.image)).forEach(src => {
-                // console.log(src);
-                image = Array.from(Object.keys(product.image))[0]; // });
+                image = Array.from(Object.keys(product.image))[0];
               } else {
                 image = product.image;
-              } // });
-              // Remove Proxy Url From Image Url
+              } // Remove Proxy Url From Image Url
 
 
               image = image.replace(settings.img_proxy_url, "");
@@ -704,15 +731,9 @@ Array.from(document.getElementsByClassName("shopping_website_trigger")).forEach(
                     console.log("Product: ", product); // Check If Product Available
 
                     if (product.status > 0) {
-                      // Calculate And Covert Price
+                      // Calculate And Convert Price
                       prices = calculate_price(product);
-                      console.log("Prices:", prices); // // e.target.innerHTML += ` Price: ${prices.total_price}`;
-                      // document.getElementById('external_checkout').innerHTML = settings.tl_checkout;
-                      // document.getElementById('external_checkout').addEventListener('click', e => {
-                      //   location.href = settings.wc_cart_url;
-                      // });
-                      // document.getElementById('external_checkout').style.display = 'inline-block';
-                      // // Create Categories
+                      console.log("Prices:", prices); // // Create Categories
                       // var categories = await create_product_categories(product) || [];
                       // console.log('categories created so far: ', categories);
                       // Create Product ( With No Categories )
@@ -756,7 +777,6 @@ Array.from(document.getElementsByClassName("shopping_website_trigger")).forEach(
                       });
                     } else {
                       // No Product Found (STATUS: 0)
-                      // e.target.innerHTML += ` No Product Found`;
                       toastify_js__WEBPACK_IMPORTED_MODULE_2___default()({
                         text: "محصولی یافت نشد، لطفا دوباره تلاش کنید",
                         duration: 8000,

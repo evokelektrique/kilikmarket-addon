@@ -87,19 +87,36 @@ class KilikMarketFunctions {
 		// Set javascript objects
 		wp_localize_script( 'script', 'settings', [
 			'ajaxurl' 	 => admin_url('admin-ajax.php'),
-			// Translations / ترجمه ها
+			// Translations
 			'tl_checkout' 	 => __( 'تسویه پرداخت', "kilikmarket-addon" ),
+
 			'plugin_dir' => plugin_dir_url( __FILE__ ),
 			'origin_url' => self::$origin_url,
 			'base_url' 	 => get_home_url(),
+
+			// Image Proxy Address
 			'img_proxy_url' => "http://localhost/wordpress_projects/kilikmarket_proxy/img_proxy.php?url=",
+
+			// WooCommerce
 			'wc_cart_url' => wc_get_cart_url(),
 			'wc_ck'		 => carbon_get_theme_option('km_wc_ck'),
 			'wc_cs'		 => carbon_get_theme_option('km_wc_cs'),
-			// 'fee_price' 	 => carbon_get_theme_option('km_fee_price'),
-			// 'price_per_gram' => carbon_get_theme_option('km_price_per_gram'),
-			// 'usd_price' 	 => carbon_get_theme_option('km_usd_price'),
-			// 'aed_price' 	 => carbon_get_theme_option('km_aed_price'),
+
+			// Fee Prices
+			'km_fee_price_1' 	 => carbon_get_theme_option('km_fee_price_1'),
+			'km_fee_price_2' 	 => carbon_get_theme_option('km_fee_price_2'),
+			'km_fee_price_3' 	 => carbon_get_theme_option('km_fee_price_3'),
+			'km_fee_price_4' 	 => carbon_get_theme_option('km_fee_price_4'),
+			'km_fee_price_5' 	 => carbon_get_theme_option('km_fee_price_5'),
+
+			// Clearance Prices
+			'km_clearance_price_1' 	 => carbon_get_theme_option('km_clearance_price_1'),
+			'km_clearance_price_2' 	 => carbon_get_theme_option('km_clearance_price_2'),
+			'km_clearance_price_3' 	 => carbon_get_theme_option('km_clearance_price_3'),
+			'km_clearance_price_4' 	 => carbon_get_theme_option('km_clearance_price_4'),
+			'km_clearance_price_5' 	 => carbon_get_theme_option('km_clearance_price_5'),
+
+			// Pages
 			'favorites_page_url' => carbon_get_theme_option('km_favorites_page')
 			
 		]);
@@ -172,12 +189,43 @@ class KilikMarketFunctions {
 				Field::make( 'text', 'km_wc_cs', __( 'کلید مخفی API ووکامرس' ) )
 				    ->set_attribute( 'placeholder', 'cs_' ),
 
-				// // Prices
-			    // Field::make( 'separator', 'km_prices_seperator', __( 'قیمت ها' ) ),
-				// Field::make( 'number', 'km_fee_price', __( 'مقدار کارمزد' ) ),
-				// Field::make( 'number', 'km_price_per_gram', __( 'قیمت واحد بر هر 100 گرم' ) ),
-				// Field::make( 'number', 'km_usd_price', __( 'قیمت دلار' ) ),
-				// Field::make( 'number', 'km_shipment_price', __( 'قیمت حمل (دلار)' ) ),
+			    // 
+				// Prices
+			    // 
+			    Field::make( 'separator', 'km_prices_seperator', __( 'قیمت ها' ) ),
+
+			    // 
+			    // Fee
+			    // 
+			    Field::make( 'separator', 'km_fee_seperator', __( 'کارمزد' ) )
+					->set_classes('km_fee_price is-right'),
+				Field::make( 'number', 'km_fee_price_1', __( '<= 100' ) )
+					->set_classes('km_fee_price'),
+				Field::make( 'number', 'km_fee_price_2', __( '100 < PRICE($) <= 200' ) )
+					->set_classes('km_fee_price'),
+				Field::make( 'number', 'km_fee_price_3', __( '200 < PRICE($) <= 300' ) )
+					->set_classes('km_fee_price'),
+				Field::make( 'number', 'km_fee_price_4', __( '300 < PRICE($) <= 500' ) )
+					->set_classes('km_fee_price'),
+				Field::make( 'number', 'km_fee_price_5', __( '500 < PRICE($)' ) )
+					->set_classes('km_fee_price'),
+
+			    // 
+			    // Clearance
+			    // 
+			    Field::make( 'separator', 'km_clearance_seperator', __( 'گمرک' ) )
+					->set_classes('km_clearance_price is-right'),
+				Field::make( 'number', 'km_clearance_price_1', __( '<= 100' ) )
+					->set_classes('km_clearance_price'),
+				Field::make( 'number', 'km_clearance_price_2', __( '100 < PRICE($) <= 200' ) )
+					->set_classes('km_clearance_price'),
+				Field::make( 'number', 'km_clearance_price_3', __( '200 < PRICE($) <= 300' ) )
+					->set_classes('km_clearance_price'),
+				Field::make( 'number', 'km_clearance_price_4', __( '300 < PRICE($) <= 500' ) )
+					->set_classes('km_clearance_price'),
+				Field::make( 'number', 'km_clearance_price_5', __( '500 < PRICE($)' ) )
+					->set_classes('km_clearance_price'),
+
 
 				// Pages
 			    Field::make( 'separator', 'km_favorites_seperator', __( 'صفحه ها' ) ),
@@ -249,9 +297,9 @@ class KilikMarketFunctions {
 				<tr>
 					<td>آدرس محصول</td>
 					<td>
-							<p style="color: cyan">
-								<a href="<?= substr($details->product->url, strlen(self::$origin_url) + 12) ?>"><?= substr($details->product->url, strlen(self::$origin_url) + 12, strlen(self::$origin_url) + 10 ) ?></a>	
-							</p>
+						<p style="color: cyan">
+							<a href="<?= substr($details->product->url, strlen(self::$origin_url) + 12) ?>"><?= substr($details->product->url, strlen(self::$origin_url) + 12, strlen(self::$origin_url) + 10 ) ?></a>	
+						</p>
 					</td>
 				</tr>
 				<?php endif; ?>

@@ -303,6 +303,7 @@ async function add_to_cart(product_id) {
   });
 }
 
+// Phase 1: Shopping Websites Iframes Trigger Events
 Array.from(document.getElementsByClassName("shopping_website_trigger")).forEach(element => {
   element.addEventListener('click', event => {
     var _this = event.target;
