@@ -16,8 +16,11 @@ add_shortcode( 'proxy', ['KilikMarketFunctions', 'proxy_template'] );
 // Shopping Websites Tabs Shortcode
 add_shortcode( 'shops', ['KilikMarketFunctions', 'shops_template'] );
 
-// Shopping Websites Tabs Shortcode
+// Favorites Shortcode
 add_shortcode( 'favorites', ['KilikMarketFunctions', 'favorites_template'] );
+
+// Shopping Websites Form Shortcode
+add_shortcode( 'shops_form', ['KilikMarketFunctions', 'shops_form_template'] );
 
 // Register Style and Scripts
 // Admin
@@ -37,10 +40,14 @@ add_action( 'wp_enqueue_scripts', ['KilikMarketFunctions', 'register_styles'] );
 add_action( 'wp_ajax_nopriv_get_currencies', ['KilikMarketFunctions', 'get_currencies']);
 add_action( 'wp_ajax_get_currencies', ['KilikMarketFunctions', 'get_currencies']);
 
+add_action( 'wp_ajax_nopriv_convert_currency', ['KilikMarketFunctions', 'convert_currency']);
+add_action( 'wp_ajax_convert_currency', ['KilikMarketFunctions', 'convert_currency']);
+
 
 
 add_action( 'carbon_fields_register_fields', ['KilikMarketFunctions', 'theme_options'] );
 add_action( 'after_setup_theme', ['KilikMarketFunctions', 'carbon_fields_load'] );
+// add_action( 'admin_init', ['KilikMarketFunctions', 'admin'] );
 
 
 // Product Information Hook

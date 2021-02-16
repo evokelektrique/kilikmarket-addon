@@ -4,7 +4,7 @@
 Plugin Name: KilikMarket
 Description: KilikMarket Addon
 Author: WebDataCo
-Version: 1.0
+Version: 1.5
 Author URI: http://webdata.co
 Text Domain: kilikmarket
 */
@@ -24,7 +24,7 @@ require __DIR__ . '/vendor/autoload.php';
 class KilikMarket {
 
     private static $instance;
-	public static $version = '1.0';
+	public static $version = '1.5';
 
 	// Construction
 	public function __construct() {

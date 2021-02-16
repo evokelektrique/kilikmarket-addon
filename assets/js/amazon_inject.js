@@ -183,14 +183,23 @@ function km_get_product() {
 		};
 
 		// Product Title
-		var title = document.getElementById("productTitle").textContent.trim();
+		var title = document.getElementById("productTitle");
+
 		// Assign Title To Product
-		product.title = title;
+		if(title) {
+			product.title = title.textContent.trim();
+		} else {
+			return {
+				status: 0
+			};
+		}
 
 		// Product Description
-		var description = document.getElementById("feature-bullets").textContent.trim();
+		var description = document.getElementById("feature-bullets");
 		// Assign Description TO Title
-		product.description = description;
+		if(description) {
+			product.description = description.textContent.trim();
+		}
 
 		// Fetch & Assign category to product
 		var categories = Array.from(document.querySelectorAll('#wayfinding-breadcrumbs_feature_div li'));
@@ -213,19 +222,19 @@ function km_get_product() {
 		if(document.getElementById('priceblock_ourprice') !== null) {
 			// Single Price Product
 			var price = document.getElementById('priceblock_ourprice').textContent.split("$");
-			product.price 	 = price[1].trim().replace(',', '') || null;
+			product.price 	 = price[1].trim().replace(',', '.') || null;
 			product.currency = "USD";
 
 		} else if(document.getElementById('price_inside_buybox') !== null) {
 			// Single Price Product
 			var price = document.getElementById('price_inside_buybox').textContent.split("$");
-			product.price 	 = price[1].trim().replace(',', '') || null;
+			product.price 	 = price[1].trim().replace(',', '.') || null;
 			product.currency = "USD";
 
 		} else if(document.querySelector('[data-action="show-all-offers-display"] .a-size-base') !== null) {
 			// Multi Price Product
 			var price = document.querySelector('[data-action="show-all-offers-display"] .a-size-base').textContent.split("$");
-			product.price 	 = price[1].trim().replace(',', '') || null;
+			product.price 	 = price[1].trim().replace(',', '.') || null;
 			product.currency = "USD";
 
 		} else {
@@ -332,6 +341,16 @@ function kilikmartket_main() {
 
 	// Remove location changer
 	var location_form = document.getElementById('sp-cc');
+	const location_form_2 = setInterval( () => {
+		var location = document.querySelector(".a-section.glow-toaster.glow-toaster-theme-default.glow-toaster-slot-default.nav-coreFlyout.nav-flyout");
+		
+		if(location) {
+			location.style.display = 'none';
+		}
+
+		clearInterval(location_form_2);
+	}, 1000);
+
 	if(location_form) {
 		location_form.style.display = "none";
 	} else {
@@ -339,7 +358,9 @@ function kilikmartket_main() {
 		console.log('KM_LOG: Location Changer not Found')
 	}
 
-	// alert('complete');
+	// Hide Calculated Prices
+	parent.document.getElementById("calculated_prices").classList.add('disabled');
+
 }
 
 kilikmartket_main();

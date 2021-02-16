@@ -13,6 +13,9 @@ customElements.define('x-frame-bypass', class extends HTMLIFrameElement {
 	}
 	load (url, options) {
 		console.log("KM_LOG: url starts with", url)
+		
+		// Hide Calculated Prices
+		parent.document.getElementById("calculated_prices").classList.add('disabled');
 
 		if (!url || !url.startsWith('http'))
 			throw new Error(`X-Frame-Bypass src ${url} does not start with http(s)://`)
@@ -136,47 +139,50 @@ customElements.define('x-frame-bypass', class extends HTMLIFrameElement {
 	<script>
 	window.km_current_url = "${url}";
 
+	
 	XMLHttpRequest.prototype.open = (function (open) {
-	    return function (method, url, async) {
-	        console.log('the outgoing url1 is ', url);
-            if (url.startsWith('http')) {
-                let u = url.split('/')
-                if (u[2] === "www.amazon.ae" || u[2] === 'cdp.aliexpress.com' || u[2] === 'login.aliexpress.com') {
-                    url = "http://localhost/wordpress_projects/kilikmarket_proxy/proxy.php" + "?url=" + url
-                    this.withCredentials = true;
-                } else if (url.indexOf('completion.amazon.ae') > -1) {
-                    url = "http://localhost/wordpress_projects/kilikmarket_proxy/proxy.php" + "?url=" + url;
-                    this.withCredentials = true;
-                }
-            } else if (url.startsWith('about:')) {
-                url = url.replace('about:', "http://localhost/wordpress_projects/kilikmarket_proxy/proxy.php" + '?url=https:')
-                this.withCredentials = true;
-            } else if (url.startsWith('//acs.aliexpress.com') || url.startsWith('//u.alicdn.com') || url.startsWith('//www.aliexpress.com')) {
-                url = "http://localhost/wordpress_projects/kilikmarket_proxy/proxy.php" + "?url=https:" + url;
-                this.withCredentials = true;
-            } else if (url.indexOf('/api/1.0/cart.do') > -1) {
-                url = "http://localhost/wordpress_projects/kilikmarket_proxy/proxy.php" + "?url=https://shoppingcart.aliexpress.com" + url
-                this.withCredentials = true;
-            } else if (url.startsWith('//fls-')) {
-                url = "http://localhost/wordpress_projects/kilikmarket_proxy/proxy.php" + "?url=https:" + url;
-                this.withCredentials = true;
-            } else if (url.indexOf('null/gh') > -1) {
-                let correctUrl = url.split('null');
-                url = correctUrl[1];
-                url = "http://localhost/wordpress_projects/kilikmarket_proxy/proxy.php" + "?url=https://www.amazon.ae" + url;
-                this.withCredentials = true;
-            } else {
-                let proxyServerAddress = "http://localhost/wordpress_projects/kilikmarket_proxy/proxy.php" + "?url=https://www.amazon.ae";
-                if (!url.startsWith('/')) {
-                    proxyServerAddress = proxyServerAddress + '/';
-                }
-                url = proxyServerAddress + url;
-                this.withCredentials = true;
-            }
-	        console.log('the outgoing url2 is ', url);
-	        open.apply(this, arguments);
-	    };
+		return function (method, url, async) {
+			console.log('the outgoing url1 is ', url);
+			if(url.startsWith("https:///api")) {
+				console.log("AAAAAAAAAAAAAAAAAAAAA1");
+				url = url.replace('https:///api', 'http://localhost/wordpress_projects/kilikmarket_proxy/proxy.php?url=https://www.aliexpress.com/api')
+				this.withCredentials = true;
+			} else if (url.startsWith('about:')) {
+				console.log("AAAAAAAAAAAAAAAAAAAAA2");
+				url = url.replace('about:', 'http://localhost/wordpress_projects/kilikmarket_proxy/proxy.php?url=https:')
+				this.withCredentials = true;
+			} else if (url.startsWith('//acs.aliexpress.com') || url.startsWith('//u.alicdn.com') || url.startsWith('//www.aliexpress.com')) {
+				console.log("AAAAAAAAAAAAAAAAAAAAA3");
+				url = "http://localhost/wordpress_projects/kilikmarket_proxy/proxy.php?url=https:" + url;
+				this.withCredentials = true;
+			} else if (url.indexOf('/api/1.0/cart.do') > -1) {
+				console.log("AAAAAAAAAAAAAAAAAAAAA4");
+				url = "http://localhost/wordpress_projects/kilikmarket_proxy/proxy.php?url=https://shoppingcart.aliexpress.com" + url
+				this.withCredentials = true;
+			} else if (url.startsWith('//fls-')) {
+				url = "http://localhost/wordpress_projects/kilikmarket_proxy/proxy.php?url=https:" + url;
+				this.withCredentials = true;
+			} else if (url.indexOf('null/gh') > -1) {
+				console.log("AAAAAAAAAAAAAAAAAAAAA5");
+				let correctUrl = url.split('null');
+				url = correctUrl[1];
+				url = "http://localhost/wordpress_projects/kilikmarket_proxy/proxy.php?url=" + url;
+				this.withCredentials = true;
+			} else {
+				console.log("AAAAAAAAAAAAAAAAAAAAA6");
+				let proxyServerAddress = "http://localhost/wordpress_projects/kilikmarket_proxy/proxy.php?url=";
+				if (!url.startsWith('/')) {
+					proxyServerAddress = proxyServerAddress;
+				}
+				url = proxyServerAddress + url;
+				this.withCredentials = true;
+			}
+			console.log('the outgoing url2 is ', url);
+			open.apply(this, arguments);
+		};
 	})(XMLHttpRequest.prototype.open);
+
+
 
 	// DOM Onload event
 	document.addEventListener("DOMContentLoaded", function(event) {
@@ -210,7 +216,6 @@ customElements.define('x-frame-bypass', class extends HTMLIFrameElement {
 					km_script.type = "text/javascript";
 					km_script.src = parent.settings.plugin_dir + 'assets/js/'+ window.iframe_properties.variation.name +'_inject.js';
 					km_document_head.appendChild(km_script);
-					parent.alert("injected script"); // TODO: Remove later
 
 					clearInterval(settings_find_interval);
 				}

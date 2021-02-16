@@ -46,22 +46,68 @@ h2, h3 {
 	border-collapse: collapse;
 }
 
-.km_fee_price {
-    direction: ltr;
-    background: #ffef9f;
-    border: none !important;
+// .km_fee_price {
+//     direction: ltr;
+//     background: #ffef9f;
+//     border: none !important;
 
-    &.is-right {
-        direction: rtl;
-    }
+//     &.is-right {
+//         direction: rtl;
+//     }
+// }
+
+// .km_clearance_price {
+//     direction: ltr;
+//     background: #aaaaff;
+//     border: none !important;
+
+//     &.is-right {
+//         direction: rtl;
+//     }
+// }
+
+.km_fee_price,
+.km_clearance_price {
+    text-align: left;
+    direction: ltr;
 }
 
-.km_clearance_price {
-    direction: ltr;
-    background: #aaaaff;
-    border: none !important;
 
-    &.is-right {
-        direction: rtl;
+.cf-container__tabs-item--current {
+  background-color: #5699ff !important;
+  color: #fff !important;
+  border-color: #5699ff !important;
+
+  &:hover {
+    background-color: #2b79f1 !important;
+    color: #fff;
+    border-color: #2b79f1 !important;
+  }
+}
+
+.currencies {
+    display: flex;
+    justify-content: center;
+
+    .column {
+        flex: 1;
+        text-align: center;
+        background: #3485ad;
+        margin: 4px;
+        border-radius: 4px;
+        padding: 10px;
+        font-family: sans-serif;
+        color: #fff;      
+        font-size: 14px;
+        background: linear-gradient(to bottom, #1c513f, #2f936a);
+        background: -webkit-linear-gradient(to bottom, #1c513f, #2f936a);
+
+        b {
+            text-align: center;
+        }
+
+        span {
+            text-align: center;
+        }
     }
 }
