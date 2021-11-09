@@ -3,7 +3,7 @@
 // Calculator Page
 // var_dump($_GET);
 // var_dump(admin_url( '', 'admin' ));
-$currencies = KilikMarketFunctions::admin_get_currencies();
+$currencies = KilikMarketFunctions::admin_get_currencies(1);
 ?>
 
 
@@ -26,6 +26,8 @@ $currencies = KilikMarketFunctions::admin_get_currencies();
 		<span><?= $currencies['TRY']['sell'] ?></span>
 	</div>
 </div>
+<?php else: ?>
+	دریافت نشد
 <?php endif; ?>
 
 <!-- <form id="km_calculator">

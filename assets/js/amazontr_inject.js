@@ -359,6 +359,11 @@ function kilikmartket_main() {
 
 	// Hide Calculated Prices
 	parent.document.getElementById("calculated_prices").classList.add('disabled');
+	
+	// Close Calculated Price Event
+	window.addEventListener('click', e => {
+      parent.document.getElementById("calculated_prices").classList.add('disabled');
+	});
 }
 
 kilikmartket_main();

@@ -12,17 +12,40 @@
       <!-- Exit button -->
       <span class="shopping_website_trigger" id="exit_button"></span>
 
+      <!-- lush -->
+      <a onclick="event.preventDefault()" href="<?= carbon_get_theme_option('km_external_iframe_page') . "?external=6" ?>">
+        <span class="shopping_website_trigger" data-target="6" id="lush_website"></span>
+      </a>
+
+      <!-- virgin -->
+      <a onclick="event.preventDefault()" href="<?= carbon_get_theme_option('km_external_iframe_page') . "?external=5" ?>">
+        <span class="shopping_website_trigger" data-target="5" id="virgin_website"></span>
+      </a>
+
+      <!-- huawei -->
+      <a onclick="event.preventDefault()" href="<?= carbon_get_theme_option('km_external_iframe_page') . "?external=4" ?>">
+        <span class="shopping_website_trigger" data-target="4" id="huawei_website"></span>
+      </a>
+
       <!-- aliexpress -->
-      <span class="shopping_website_trigger" data-target="3" id="aliexpress_website"></span>
+      <a onclick="event.preventDefault()" href="<?= carbon_get_theme_option('km_external_iframe_page') . "?external=3" ?>">
+        <span class="shopping_website_trigger" data-target="3" id="aliexpress_website"></span>
+      </a>
 
       <!-- sixpm -->
-      <span class="shopping_website_trigger" data-target="2" id="amazontr_website"></span>
+      <a onclick="event.preventDefault()" href="<?= carbon_get_theme_option('km_external_iframe_page') . "?external=2" ?>">
+        <span class="shopping_website_trigger" data-target="2" id="amazontr_website"></span>
+      </a>
 
       <!-- amazonae -->
-      <span class="shopping_website_trigger" data-target="1" id="amazonae_website"></span>
+      <a onclick="event.preventDefault()" href="<?= carbon_get_theme_option('km_external_iframe_page') . "?external=1" ?>">
+        <span class="shopping_website_trigger" data-target="1" id="amazonae_website"></span>
+      </a>
 
       <!-- amazon -->
-      <span class="shopping_website_trigger" data-target="0" id="amazon_website"></span>
+      <a onclick="event.preventDefault()" href="<?= carbon_get_theme_option('km_external_iframe_page') . "?external=0" ?>">
+        <span class="shopping_website_trigger" data-target="0" id="amazon_website"></span>
+      </a>
   </div>
 
   <!-- Iframe container -->
@@ -43,6 +66,10 @@
 </div>
 
 <div id="external_add_to_cart_container" style="display: none">
+  <button id="exit_button_quick">
+    <span>بازگشت به خانه</span>
+  </button>
+
 	<button id="external_add_to_favorites">
     <div class="spinner">
       <div class="double-bounce1"></div>
@@ -58,24 +85,7 @@
     </div>
     <span>افزودن به سبد</span>
   </button>
-  <!-- 
-total_price:        total_irr_product_price,
-
-weight_price:       shipment_price, // TODO: Change it from dashboard.
-weight_status:      weight_status,
-
-price:              exchange_rate,
-original_price:     product.price,
-
-fee_price:          fee_price,
-fee_percent:        parseFloat(fee_percent),
-
-clearance_price:    clearance_price,
-clearance_percent:  parseFloat(clearance_percent),
-
-converted_status:   converted_status,
-converted:          converted
-   -->
+  
 	<button id="external_calculate">
     <ul id="calculated_prices" class="disabled">
       <!-- <span id="close_prices"></span> -->
@@ -118,7 +128,7 @@ converted:          converted
 
       <!-- Weight Price -->
       <li id="weight_price"> 
-        <b>وزن</b>
+        <b>حمل و نقل</b>
         <span class="price">
           <span class="p">1,000,000</span>
           <span id="weight">10kg</span>

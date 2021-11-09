@@ -30,10 +30,21 @@ class KilikMarket {
 	public function __construct() {
 
 		$files = [
-			
+			// Root
 			'constants.php',
 			'functions.php',
 			'hooks.php',
+			'proxy_grabber.php',
+
+			// Crawlers
+			'includes/crawlers/amazon.php',
+			'includes/crawlers/aliexpress.php',
+
+			// Pages
+			'includes/pages/pages_list_table_class.php',
+			'includes/pages/pages_list_table_functions.php',
+			'includes/pages/form/pages_form_handler.php',
+			'includes/pages/form/pages_form_functions.php',
 		];
 
 		// Call Load Files

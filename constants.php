@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 // 
 
 // Plugin Root Directory
-define('KM_ROOT', plugin_dir_path( __FILE__ ));
+define('COIN_ROOT', plugin_dir_path( __FILE__ ));
 
 // Plugin Name
 define('PLUGIN_NAME', 'kilikmarket');

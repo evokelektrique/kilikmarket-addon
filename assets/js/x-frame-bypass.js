@@ -186,6 +186,11 @@ customElements.define('x-frame-bypass', class extends HTMLIFrameElement {
 
 	// DOM Onload event
 	document.addEventListener("DOMContentLoaded", function(event) {
+		// Close Calculated Price Event
+		window.addEventListener('click', e => {
+	      parent.document.getElementById("calculated_prices").classList.add('disabled');
+		});
+
 		// Proxy Images
 		var change_images_interval = setInterval( () => {
 		    var images 		  = document.getElementsByTagName('img');
@@ -199,11 +204,11 @@ customElements.define('x-frame-bypass', class extends HTMLIFrameElement {
 
 		}, 1000);
 
-
-		// Aliexpress configurations
-		if(km_current_url.includes('aliexpress')) {
-
-			// Find iframe settings form parent
+		// Find iframe settings form parent
+		if(km_current_url.includes('huawei') || 
+			km_current_url.includes('aliexpress') ||
+			km_current_url.includes('mena.lush') ||
+			km_current_url.includes('virginmegastore') ) {
 			var settings_find_interval = setInterval(() => {
 				console.log('finding settings ...');
 				if(window.iframe_properties.variation.name !== undefined ||
@@ -220,7 +225,10 @@ customElements.define('x-frame-bypass', class extends HTMLIFrameElement {
 					clearInterval(settings_find_interval);
 				}
 			}, 1000);
+		}
 
+		// Aliexpress configurations
+		if(km_current_url.includes('aliexpress')) {
 
 			// find navigation buttons
 			var buttons = []
@@ -289,9 +297,9 @@ customElements.define('x-frame-bypass', class extends HTMLIFrameElement {
 
 	fetchProxy (url, options, i) {
 		const proxies = (options || {}).proxies || [
-			'https://cors-anywhere.herokuapp.com/',
+			'https://api.codetabs.com/v1/proxy/?quest=',
 			'https://yacdn.org/proxy/',
-			'https://api.codetabs.com/v1/proxy/?quest='
+			'https://cors-anywhere.herokuapp.com/'
 		]
 		return fetch(proxies[i] + url, options).then(res => {
 			if (!res.ok)

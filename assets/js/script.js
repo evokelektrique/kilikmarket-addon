@@ -1,6 +1,12 @@
 import WooCommerceRestApi from "@woocommerce/woocommerce-rest-api";
 import Toastify from 'toastify-js'
 import "toastify-js/src/toastify.css"
+
+var jQueryBridget = require('jquery-bridget');
+var Isotope       = require('isotope-layout');
+// make Isotope a jQuery plugin
+jQueryBridget( 'isotope', Isotope, jQuery );
+
 window.toastify = Toastify;
 
 const api = new WooCommerceRestApi({
@@ -12,6 +18,170 @@ const api = new WooCommerceRestApi({
 
 // TODO: Remove later
 console.log(settings);
+
+
+
+
+
+
+
+
+
+// /**
+//  * Filters | Blog & Portfolio
+//  */
+
+// jQuery('.filters_buttons .open').on('click', function(e) {
+//   e.preventDefault();
+//   var type = $(this).closest('li').attr('class');
+
+//   jQuery('.filters_wrapper').show(200);
+//   jQuery('.filters_wrapper ul.' + type).show(200);
+//   jQuery('.filters_wrapper ul:not(.' + type + ')').hide();
+// });
+
+// jQuery('.filters_wrapper .close a').on('click', function(e) {
+//   e.preventDefault();
+//   jQuery('.filters_wrapper').hide(200);
+// });
+
+// /**
+//  * Portfolio List | Next v / Prev ^ buttons
+//  */
+
+// jQuery('.portfolio_next_js').on('click', function(e) {
+//   e.preventDefault();
+
+//   var item = $(this).closest('.portfolio-item').next();
+
+//   if (item.length) {
+//     jQuery('html, body').animate({
+//       scrollTop: item.offset().top - fixStickyHeaderH()
+//     }, 500);
+//   }
+// });
+
+// // Portfolio - Isotope
+
+// jQuery('.blog_wrapper .isotope:not( .masonry ), .portfolio_wrapper .isotope:not( .masonry-flat, .masonry-hover, .masonry-minimal )').isotope({
+//   itemSelector: '.isotope-item',
+//   layoutMode: 'fitRows',
+//   isOriginLeft: true
+// });
+
+// // Portfolio - Masonry Flat
+
+// jQuery('.portfolio_wrapper .masonry-flat').isotope({
+//   itemSelector: '.isotope-item',
+//   percentPosition: true,
+//   masonry: {
+//     columnWidth: 1
+//   },
+//   isOriginLeft: true
+// });
+
+// // Blog & Portfolio - Masonry
+
+// jQuery('.isotope.masonry, .isotope.masonry-hover, .isotope.masonry-minimal').isotope({
+//   itemSelector: '.isotope-item',
+//   layoutMode: 'masonry',
+//   isOriginLeft: true
+// });
+
+// // Portfolio | Active Category
+
+// function portfolioActive() {
+//   var el = jQuery('.filters_wrapper');
+//   var active = el.attr('data-cat');
+
+//   if (active) {
+//     el.find('li.' + active).addClass('current-cat');
+//     jQuery('.isotope').isotope({
+//       filter: '.category-' + active
+//     });
+//   }
+// }
+// portfolioActive();
+
+
+// jQuery('.grid').isotope({
+//   // options
+//   itemSelector: '.grid-item',
+//   layoutMode: 'masonry',
+//   isOriginLeft: false
+// });
+
+// jQuery('.isotope:not( .masonry )').isotope({
+//   itemSelector: '.isotope-item',
+//   layoutMode: 'fitRows',
+//   isOriginLeft: false
+// });
+
+function portfolioActive() {
+  var el = jQuery('.filters_wrapper');
+  var active = el.attr('data-cat');
+
+  if (active) {
+    el.find('li.' + active).addClass('current-cat');
+    jQuery('.isotope').isotope({
+      filter: '.category-' + active
+    });
+  }
+}
+portfolioActive();
+
+
+function isotopeFilter(domEl, isoWrapper) {
+
+  var filter = domEl.attr('data-rel');
+  isoWrapper.isotope({
+    filter: filter,
+    layoutMode: 'fitRows',
+    isOriginLeft: false
+  });
+
+  setTimeout(function() {
+    jQuery(window).trigger('resize');
+  }, 50);
+
+}
+isotopeFilter(jQuery('li.current-cat'), jQuery('.isotope'));
+
+jQuery('.filters_buttons').find('li.reset a').on('click', function(e) {
+  e.preventDefault();
+
+  jQuery('.filters_wrapper').find('li').removeClass('current-cat');
+  isotopeFilter(jQuery(this), jQuery('.isotope'));
+});
+
+// Isotope | Fiters | Click ----------
+
+jQuery('.isotope-filters .filters_wrapper').find('li:not(.close) a').on('click', function(e) {
+  e.preventDefault();
+
+  var isoWrapper = jQuery('.isotope'),
+    filters = jQuery(this).closest('.isotope-filters'),
+    parent = filters.attr('data-parent');
+
+  if (parent) {
+    parent = filters.closest('.' + parent);
+    isoWrapper = parent.find('.isotope').first();
+  }
+
+  filters.find('li').removeClass('current-cat');
+  jQuery(this).closest('li').addClass('current-cat');
+
+  isotopeFilter(jQuery(this), isoWrapper);
+
+  setTimeout(function() {
+    jQuery(document).trigger('isotope:arrange');
+  }, 500);
+});
+
+
+
+
+
 
 // Favorites
 window.add_to_favorites = function(value) {
@@ -119,23 +289,26 @@ function calculate_price(product) {
     var fee_percent      = 0;
     var converted        = 0; // Converted Product Price To USD
     var converted_status = false;
-
-    // Calculate Shipment Price By Multiplying Product Price With KiloGram Unit
+    var default_weight_status = false;
+    // Calculate Shipment Price
     if(product.weight_to_kilogram) {
       if(product.weight_to_kilogram <= 0.5) {
-        // Default price(TODO: Make it later & maybe not)
-        shipment_price = 10;
+        shipment_price = parseFloat(settings.km_clearance_price_1);
       } else if(product.weight_to_kilogram > 0.5 && product.weight_to_kilogram >= 1) {
-        shipment_price = 20;
+        // Default price
+        shipment_price = parseFloat(settings.km_clearance_price_2);
       } else if(product.weight_to_kilogram > 1 && product.weight_to_kilogram >= 2) {
-        shipment_price = 30;
+        shipment_price = parseFloat(settings.km_clearance_price_3);
       } else if(product.weight_to_kilogram > 2 && product.weight_to_kilogram >= 3) {
-        shipment_price = 40;
+        shipment_price = parseFloat(settings.km_clearance_price_4);
       } else if(product.weight_to_kilogram >= 3) {
-        shipment_price = 50;
+        shipment_price = parseFloat(settings.km_clearance_price_5);
       }
     } else {
-      weight_status = false;
+      // // weight_status = false;
+      // Set Default Weight Price
+      shipment_price = settings.km_clearance_price_2;
+      default_weight_status = true;
     }
 
     console.log('KM_LOG: product currency:', product.currency)
@@ -183,36 +356,36 @@ function calculate_price(product) {
     // Calculate Clearance Price
     if(converted_status) {
       if(converted <= 100) {
-        clearance_price = (100 * settings.km_clearance_price_1) / 100
+        clearance_price = (converted * settings.km_clearance_price_1) / 100
         clearance_percent = settings.km_clearance_price_1;
       } else if(100 < converted && converted <= 200) {
-        clearance_price = (100 * settings.km_clearance_price_2) / 100
+        clearance_price = (converted * settings.km_clearance_price_2) / 100
         clearance_percent = settings.km_clearance_price_2;
       } else if(200 < converted && converted <= 300)  {
-        clearance_price = (100 * settings.km_clearance_price_3) / 100
+        clearance_price = (converted * settings.km_clearance_price_3) / 100
         clearance_percent = settings.km_clearance_price_3;
       } else if(300 < converted && converted <= 500) {
-        clearance_price = (100 * settings.km_clearance_price_4) / 100
+        clearance_price = (converted * settings.km_clearance_price_4) / 100
         clearance_percent = settings.km_clearance_price_4;
       } else if(500 < converted) {
-        clearance_price = (100 * settings.km_clearance_price_5) / 100
+        clearance_price = (converted * settings.km_clearance_price_5) / 100
         clearance_percent = settings.km_clearance_price_5;
       }
     } else {
       if(parseFloat(product.price) <= 100) {
-        clearance_price = (100 * settings.km_clearance_price_1) / 100
+        clearance_price = (parseFloat(product.price) * settings.km_clearance_price_1) / 100
         clearance_percent = settings.km_clearance_price_1;
       } else if(100 < parseFloat(product.price) && parseFloat(product.price) <= 200) {
-        clearance_price = (100 * settings.km_clearance_price_2) / 100
+        clearance_price = (parseFloat(product.price) * settings.km_clearance_price_2) / 100
         clearance_percent = settings.km_clearance_price_2;
       } else if(200 < parseFloat(product.price) && parseFloat(product.price) <= 300)  {
-        clearance_price = (100 * settings.km_clearance_price_3) / 100
+        clearance_price = (parseFloat(product.price) * settings.km_clearance_price_3) / 100
         clearance_percent = settings.km_clearance_price_3;
       } else if(300 < parseFloat(product.price) && parseFloat(product.price) <= 500) {
-        clearance_price = (100 * settings.km_clearance_price_4) / 100
+        clearance_price = (parseFloat(product.price) * settings.km_clearance_price_4) / 100
         clearance_percent = settings.km_clearance_price_4;
       } else if(500 < parseFloat(product.price)) {
-        clearance_price = (100 * settings.km_clearance_price_5) / 100
+        clearance_price = (parseFloat(product.price) * settings.km_clearance_price_5) / 100
         clearance_percent = settings.km_clearance_price_5;
       }
     }  
@@ -220,36 +393,36 @@ function calculate_price(product) {
     // Calculate Fee Price
     if(converted_status) {
       if(converted <= 100) {
-        fee_price = (100 * settings.km_fee_price_1) / 100
+        fee_price = (converted * settings.km_fee_price_1) / 100
         fee_percent = settings.km_fee_price_1;
       } else if(100 < converted && converted <= 200) {
-        fee_price = (100 * settings.km_fee_price_2) / 100
+        fee_price = (converted * settings.km_fee_price_2) / 100
         fee_percent = settings.km_fee_price_2;
       } else if(200 < converted && converted <= 300)  {
-        fee_price = (100 * settings.km_fee_price_3) / 100
+        fee_price = (converted * settings.km_fee_price_3) / 100
         fee_percent = settings.km_fee_price_3;
       } else if(300 < converted && converted <= 500) {
-        fee_price = (100 * settings.km_fee_price_4) / 100
+        fee_price = (converted * settings.km_fee_price_4) / 100
         fee_percent = settings.km_fee_price_4;
       } else if(500 < converted) {
-        fee_price = (100 * settings.km_fee_price_5) / 100
+        fee_price = (converted * settings.km_fee_price_5) / 100
         fee_percent = settings.km_fee_price_5;
       }
     } else {
       if(parseFloat(product.price) <= 100) {
-        fee_price = (100 * settings.km_fee_price_1) / 100
+        fee_price = (parseFloat(product.price) * settings.km_fee_price_1) / 100
         fee_percent = settings.km_fee_price_1;
       } else if(100 < parseFloat(product.price) && parseFloat(product.price) <= 200) {
-        fee_price = (100 * settings.km_fee_price_2) / 100
+        fee_price = (parseFloat(product.price) * settings.km_fee_price_2) / 100
         fee_percent = settings.km_fee_price_2;
       } else if(200 < parseFloat(product.price) && parseFloat(product.price) <= 300)  {
-        fee_price = (100 * settings.km_fee_price_3) / 100
+        fee_price = (parseFloat(product.price) * settings.km_fee_price_3) / 100
         fee_percent = settings.km_fee_price_3;
       } else if(300 < parseFloat(product.price) && parseFloat(product.price) <= 500) {
-        fee_price = (100 * settings.km_fee_price_4) / 100
+        fee_price = (parseFloat(product.price) * settings.km_fee_price_4) / 100
         fee_percent = settings.km_fee_price_4;
       } else if(500 < parseFloat(product.price)) {
-        fee_price = (100 * settings.km_fee_price_5) / 100
+        fee_price = (parseFloat(product.price) * settings.km_fee_price_5) / 100
         fee_percent = settings.km_fee_price_5;
       }
     }
@@ -259,44 +432,29 @@ function calculate_price(product) {
 
     // Calculate Total Price In IRR
     var total_irr_product_price = 0;
-    if(weight_status) {
-      if(converted_status) {
-        total_irr_product_price = (
-          parseFloat(converted) + 
-          shipment_price + 
-          clearance_price + 
-          fee_price
-        ) * exchange_rate;
-      } else {
-        total_irr_product_price = (
-          parseFloat(product.price) + 
-          shipment_price + 
-          clearance_price + 
-          fee_price
-        ) * exchange_rate;
-      }
+    
+    if(converted_status) {
+      total_irr_product_price = (
+        parseFloat(converted) + 
+        parseFloat(shipment_price) + 
+        clearance_price + 
+        fee_price
+      ) * exchange_rate;
     } else {
-      // Without Shipment/Weight Price
-      if(converted_status) {
-        total_irr_product_price = (
-          parseFloat(converted) + 
-          clearance_price + 
-          fee_price
-        ) * exchange_rate;
-      } else {
-        total_irr_product_price = (
-          parseFloat(product.price) + 
-          clearance_price + 
-          fee_price
-        ) * exchange_rate;
-      }
+      total_irr_product_price = (
+        parseFloat(product.price) + 
+        parseFloat(shipment_price) + 
+        clearance_price + 
+        fee_price
+      ) * exchange_rate;
     }
 
     resolve({
       total_price:        total_irr_product_price,
 
-      weight_price:       shipment_price, // TODO: Change it from dashboard.
+      weight_price:       parseFloat(shipment_price), // TODO: Change it from dashboard.
       weight_status:      weight_status,
+      default_weight_status: default_weight_status,
 
       price:              exchange_rate,
       original_price:     product.price,
@@ -322,38 +480,48 @@ if(document.getElementById('close_prices') !== null) {
 }
 
 window.show_prices = function(prices, product) {
+  console.log(prices, prices.weight_price, product);
+
   document.getElementById("calculated_prices").classList.remove('disabled');
 
-  const total_price_el = document.querySelector('#calculated_prices #total_price .price .p');
+  const total_price_el      = document.querySelector('#calculated_prices #total_price .price .p');
+  const original_price_el   = document.querySelector('#calculated_prices #original_price .price .p');
+  const clearance_price_el  = document.querySelector('#calculated_prices #clearance_price .price .p');
+  const fee_price_el        = document.querySelector('#calculated_prices #fee_price .price .p');
+  const weight_price_el     = document.querySelector('#calculated_prices #weight_price .price .p');
 
-  const original_price_el = document.querySelector('#calculated_prices #original_price .price .p');
-
-  const clearance_price_el = document.querySelector('#calculated_prices #clearance_price .price .p');
-
-  const fee_price_el = document.querySelector('#calculated_prices #fee_price .price .p');
-
-  const weight_price_el = document.querySelector('#calculated_prices #weight_price .price .p');
-
-  total_price_el.innerText = Number(parseInt(prices.total_price).toFixed(1)).toLocaleString()
-;
+  total_price_el.innerText      = Number(parseInt(prices.total_price).toFixed(1)).toLocaleString();
   original_price_el.innerText   = prices.original_price;
   fee_price_el.innerText        = prices.fee_price;
   clearance_price_el.innerText  = prices.clearance_price;
-  weight_price_el.innerText     = prices.weight_price;
 
   document.getElementById("product_currency_tag").innerText = product.currency;
-  document.getElementById("clearance_percent").innerText = `USD ${prices.clearance_percent}%`;
-  document.getElementById("fee_percent").innerText = `USD ${prices.fee_percent}%`;
-  if(prices.weight_status) {
-    document.getElementById("weight").innerText = "KG";
-    document.querySelector("#weight_price .p").innerText = prices.wieght_price;
+  document.getElementById("clearance_percent").innerText    = `USD ${prices.clearance_percent}%`;
+  document.getElementById("fee_percent").innerText          = `USD ${prices.fee_percent}%`;
+
+  if(prices.default_weight_status) {
+    document.getElementById("weight").innerText = "1 KG";
+    document.querySelector("#weight_price .p").innerHTML = `${prices.weight_price} <small>(پیشفرض)</small>`;
   } else {
-    document.getElementById("weight").innerText = '';
-    document.querySelector("#weight_price .p").innerText = `دریافت نشد`;
-    document.querySelector("#weight_price .p").style.color = "red";
+	  if(prices.weight_status) {
+	    document.getElementById("weight").innerText = "KG";
+	    document.querySelector("#weight_price .p").innerText = prices.weight_price;
+	  } else {
+	    document.getElementById("weight").innerText = '';
+	    document.querySelector("#weight_price .p").innerText = `دریافت نشد`;
+	    document.querySelector("#weight_price .p").style.color = "red";
+	  }
   }
 }
 
+// Close Calculated Price Event
+window.addEventListener('click', e => {
+  if(e.target != document.getElementById("calculated_prices") || e.target != document.getElementById("external_calculate")) {
+    if(document.getElementById("calculated_prices") != null) {
+      document.getElementById("calculated_prices").classList.add('disabled');
+    }
+  }
+});
 
 // Product Creation
 async function create_product(product, price, categories) {
@@ -497,7 +665,10 @@ async function create_product_categories(product) {
 async function add_to_cart(product_id) {
   return new Promise(resolve => {
     var url = `${settings.base_url}/?post_type=product&add-to-cart=${product_id}`
-    fetch(url).then(response => response.text()).then(data => resolve(data));
+    fetch(url).then(response => response.text()).then(data => {
+      jQuery( document.body ).trigger( 'wc_fragment_refresh' );
+      resolve(data);
+    });
   });
 }
 
@@ -522,11 +693,22 @@ Array.from(document.getElementsByClassName("shopping_website_trigger")).forEach(
     // Change Body Overflow Style
     document.body.classList.add('overflow-y-hidden');
 
+    document.getElementById('iframe_container').style.display = 'block';
+    
     // Shopping Websites Exit Button Event
+    document.getElementById("exit_button_quick").addEventListener('click', e => {
+      document.body.classList.remove('overflow-y-hidden');
+      shopping_container.classList.remove('activate');
+      document.getElementById('loading_iframe').style.display = 'none';
+      document.getElementById('iframe_container').style.display = 'none';
+      window.location = settings.base_url;
+      return;
+    });
     document.getElementById("exit_button").addEventListener('click', e => {
       document.body.classList.remove('overflow-y-hidden');
       shopping_container.classList.remove('activate');
       document.getElementById('loading_iframe').style.display = 'none';
+      document.getElementById('iframe_container').style.display = 'none';
       return;
     });
 
@@ -543,6 +725,9 @@ Array.from(document.getElementsByClassName("shopping_website_trigger")).forEach(
     //  1: AmazonAE
     //  2: AmazonTR
     //  3: AliExpress
+    //  4: Huawei
+    //  5: Virgin
+    //  6: Lush
     var iframe_variation  = parseInt(_this.dataset.target);
     var iframe_variations = {
       // Custom means it's amazon or dedicated
@@ -550,6 +735,9 @@ Array.from(document.getElementsByClassName("shopping_website_trigger")).forEach(
       1: {url: "https://www.amazon.ae", name: "amazonae", custom: true},
       2: {url: "https://www.amazon.com.tr", name: "amazontr", custom: true},
       3: {url: "https://www.aliexpress.com/category/100003070/men-clothing.html", name: "aliexpress", custom: false},
+      4: {url: "https://shop.huawei.com/ae-en/", name: 'huawei', custom: false},
+      5: {url: "https://www.virginmegastore.ae/", name: 'virgin', custom: false},
+      6: {url: "https://mena.lush.com/", name: 'lush', custom: false},
     };
     var iframe_base_url = iframe_variations[iframe_variation].url;
     var iframe_name     = iframe_variations[iframe_variation].name;
@@ -730,12 +918,14 @@ Array.from(document.getElementsByClassName("shopping_website_trigger")).forEach(
         var head_bypass_frame  = doc_bypass_frame.getElementsByTagName('head')[0];
 
         var inject_settings_interval = setInterval( () => {
-          // Inject Settings Into Iframe Window
-          _this_bypass_frame.contentWindow.km_settings = settings;
-          _this_bypass_frame.contentWindow.iframe_properties = {
-            type: iframe_variation,
-            variation: iframe_variations[iframe_variation]
-          };
+          if(_this_bypass_frame.contentWindow !== null) {
+            // Inject Settings Into Iframe Window
+            _this_bypass_frame.contentWindow.km_settings = settings;
+            _this_bypass_frame.contentWindow.iframe_properties = {
+              type: iframe_variation,
+              variation: iframe_variations[iframe_variation]
+            };
+          }
         }, 1000);
 
         // insertScript(doc_bypass_frame, head_bypass_frame, settings.plugin_dir + `assets/js/${iframe_name}_inject.js`);
@@ -894,6 +1084,16 @@ const shops_form_websites = [
 
   'aliexpress.com',
   'www.aliexpress.com',
+
+  'huawei.com',
+  'shop.huawei.com',
+  'www.shop.huawei.com',
+
+  'www.virginmegastore.ae',
+  'virginmegastore.ae',
+
+  'www.mena.lush.com',
+  'mena.lush.com',
 ];
 
 
@@ -918,12 +1118,16 @@ if(document.getElementById("shops_form_address") !== null) {
         document.getElementById('shops_form_address').classList.add("green-border");
         document.querySelector('#shops_form_submit svg').style.fill = '#8bc34a';
         document.getElementById('shops_form_address').classList.remove("red-border");
+        console.log(input_parse_url);
       
         // Iframe Variations:
         //  0: Amazon
         //  1: AmazonAE
         //  2: AmazonTR
         //  3: AliExpress
+        //  4: Huawei
+        //  5: Virgin
+        //  6: Lush
         if(['amazon.com', 'www.amazon.com'].includes(input_parse_url.host)) {
           shops_form_variation = 0;
         }
@@ -938,6 +1142,18 @@ if(document.getElementById("shops_form_address") !== null) {
 
         if(['aliexpress.com', 'www.aliexpress.com'].includes(input_parse_url.host)) {
           shops_form_variation = 3;
+        }
+
+        if(['shop.huawei.com', 'www.shop.huawei.com', 'huawei.com'].includes(input_parse_url.host)) {
+          shops_form_variation = 4;
+        }
+
+        if(['virginmegastore.ae', 'www.virginmegastore.ae'].includes(input_parse_url.host)) {
+          shops_form_variation = 5;
+        }
+
+        if(['mena.lush.com', 'www.mena.lush.com'].includes(input_parse_url.host)) {
+          shops_form_variation = 6;
         }
 
         window.shops_form_validate = true;
@@ -963,6 +1179,7 @@ if(document.getElementById("shops_form") !== null) {
     e.preventDefault();
     if(window.shops_form_validate) {
       console.log(shops_form_variation);
+      document.getElementById('iframe_container').style.display = 'block';
 
 
       // Change Shopping Websites Container Style
@@ -973,10 +1190,19 @@ if(document.getElementById("shops_form") !== null) {
       document.body.classList.add('overflow-y-hidden');
 
       // Shopping Websites Exit Button Event
+      document.getElementById("exit_button_quick").addEventListener('click', e => {
+        document.body.classList.remove('overflow-y-hidden');
+        shopping_container.classList.remove('activate');
+        document.getElementById('loading_iframe').style.display = 'none';
+        document.getElementById('iframe_container').style.display = 'none';
+        window.location = settings.base_url;
+        return;
+      });
       document.getElementById("exit_button").addEventListener('click', e => {
         document.body.classList.remove('overflow-y-hidden');
         shopping_container.classList.remove('activate');
         document.getElementById('loading_iframe').style.display = 'none';
+        document.getElementById('iframe_container').style.display = 'none';
         return;
       });
 
@@ -993,12 +1219,18 @@ if(document.getElementById("shops_form") !== null) {
       //  1: AmazonAE
       //  2: AmazonTR
       //  3: AliExpress
+      //  4: Huawei
+      //  5: Virgin
+      //  6: Lush
       var iframe_variations = {
         // Custom means it's amazon or dedicated
         0: {url: "https://amazon.com", name: "amazon", custom: true},
         1: {url: "https://www.amazon.ae", name: "amazonae", custom: true},
         2: {url: "https://www.amazon.com.tr", name: "amazontr", custom: true},
-        3: {url: "https://www.aliexpress.com/category/100003070/men-clothing.html", name: "aliexpress", custom: true}, // Custom only for form submission
+        3: {url: "https://www.aliexpress.com/category/100003070/men-clothing.html", name: "aliexpress", custom: false},
+        4: {url: "https://shop.huawei.com/ae-en/", name: 'huawei', custom: false},
+        5: {url: "https://www.virginmegastore.ae/", name: 'virgin', custom: false},
+        6: {url: "https://mena.lush.com/", name: 'lush', custom: false},
       };
 
       var iframe_base_url = iframe_variations[shops_form_variation].url;
@@ -1189,11 +1421,13 @@ if(document.getElementById("shops_form") !== null) {
 
           var inject_settings_interval = setInterval( () => {
             // Inject Settings Into Iframe Window
-            _this_bypass_frame.contentWindow.km_settings = settings;
-            _this_bypass_frame.contentWindow.iframe_properties = {
-              type: shops_form_variation,
-              variation: iframe_variations[shops_form_variation]
-            };
+            if(_this_bypass_frame.contentWindow !== null) {
+              _this_bypass_frame.contentWindow.km_settings = settings;
+              _this_bypass_frame.contentWindow.iframe_properties = {
+                type: shops_form_variation,
+                variation: iframe_variations[shops_form_variation]
+              };
+            }
           }, 1000);
 
           // insertScript(doc_bypass_frame, head_bypass_frame, settings.plugin_dir + `assets/js/${iframe_name}_inject.js`);
@@ -1336,3 +1570,397 @@ if(document.getElementById("shops_form") !== null) {
     }
   });
 }
+
+
+
+// 
+// Phase 3: Open In New Tab
+// 
+var variation = parseInt(window.location.search.split('=')[1])
+if(variation) {
+// Array.from(document.getElementsByClassName("shopping_website_trigger")).forEach(element => {
+  // element.addEventListener('click', event => {
+    var _this = document.querySelector(`[data-target='${variation}']`);
+    console.log(_this);
+
+    // Add Activate Class To Trigger Button
+    Array.from(document.getElementsByClassName("shopping_website_trigger")).forEach(trigger_button => {
+      trigger_button.classList.remove('activate');
+    });
+    _this.classList.add('activate');
+
+    // Change Shopping Websites Container Style
+    var shopping_container = document.getElementById("shopping_website_container");
+    shopping_container.classList.add('activate');
+
+    // Change Body Overflow Style
+    document.body.classList.add('overflow-y-hidden');
+
+    document.getElementById('iframe_container').style.display = 'block';
+    
+    // Shopping Websites Exit Button Event
+    document.getElementById("exit_button_quick").addEventListener('click', e => {
+      document.body.classList.remove('overflow-y-hidden');
+      shopping_container.classList.remove('activate');
+      document.getElementById('loading_iframe').style.display = 'none';
+      document.getElementById('iframe_container').style.display = 'none';
+      window.location = settings.base_url;
+      return;
+    });
+    document.getElementById("exit_button").addEventListener('click', e => {
+      document.body.classList.remove('overflow-y-hidden');
+      shopping_container.classList.remove('activate');
+      document.getElementById('loading_iframe').style.display = 'none';
+      document.getElementById('iframe_container').style.display = 'none';
+      return;
+    });
+
+    // Select Iframe Container
+    var container = document.getElementById("iframe_container"); 
+    // First Empty(Remove Any HTML) The Container
+    if(container) container.innerHTML = null; 
+    // Make sure to hide the add to cart button
+    document.getElementById('external_add_to_cart_container').style.display = 'none';
+    document.getElementById('loading_iframe').style.display = 'block';
+
+    // Iframe Variations:
+    //  0: Amazon
+    //  1: AmazonAE
+    //  2: AmazonTR
+    //  3: AliExpress
+    //  4: Huawei
+    //  5: Virgin
+    //  6: Lush
+    var iframe_variation  = parseInt(_this.dataset.target);
+    var iframe_variations = {
+      // Custom means it's amazon or dedicated
+      0: {url: "https://amazon.com", name: "amazon", custom: true},
+      1: {url: "https://www.amazon.ae", name: "amazonae", custom: true},
+      2: {url: "https://www.amazon.com.tr", name: "amazontr", custom: true},
+      3: {url: "https://www.aliexpress.com/category/100003070/men-clothing.html", name: "aliexpress", custom: false},
+      4: {url: "https://shop.huawei.com/ae-en/", name: 'huawei', custom: false},
+      5: {url: "https://www.virginmegastore.ae/", name: 'virgin', custom: false},
+      6: {url: "https://mena.lush.com/", name: 'lush', custom: false},
+    };
+    var iframe_base_url = iframe_variations[iframe_variation].url;
+    var iframe_name     = iframe_variations[iframe_variation].name;
+    var custom          = iframe_variations[iframe_variation].custom;
+
+    // Create Iframe Element Based On Event's Dataset Target
+    var iframe = document.createElement('iframe');
+    // Define iframe properties
+    iframe.id           = "km_iframe";
+    if(custom) {
+      iframe.src = `${settings.origin_url}?type=${iframe_variation}&url=${iframe_base_url}`;
+    } else {
+    //   iframe.src = `${iframe_base_url}`;
+    //   iframe.setAttribute("is", "x-frame-bypass");
+      document.getElementById('loading_iframe').style.display = 'none';
+    }
+    iframe.width        = "100%";
+    iframe.height       = "600";
+    iframe.style.border = "0";
+
+    // Add Onload Event
+    iframe.onload = async e => {
+      var _this = e.target;
+      var doc   = _this.contentWindow.document;
+      var head  = doc.getElementsByTagName('head')[0];
+
+      // Inject Settings Into Iframe Window
+      _this.contentWindow.km_settings = settings;
+      _this.contentWindow.iframe_properties = {
+        type: iframe_variation,
+        variation: iframe_variations[iframe_variation]
+      };
+
+      insertScript(doc, head, settings.plugin_dir + `assets/js/${iframe_name}_inject.js`);
+
+      // Add to cart button event
+      document.getElementById('external_add_to_cart').addEventListener('click', async e => {
+        // Add Loading Class To Button
+        document.getElementById('external_add_to_cart').classList.add('loading');
+
+
+        // Fetch Product Information From Iframe
+        if(_this.contentWindow === null) {
+          location.reload();
+          // return false;
+        }
+        var product = _this.contentWindow.km_get_product();
+        console.log("Product: ", product);
+
+        // Check If Product Available
+        if(product.status > 0) {
+          // Calculate And Covert Price
+          var prices = await calculate_price(product);
+          console.log("Prices:", prices);
+          // e.target.innerHTML += ` Price: ${prices.total_price}`;
+
+          // // Create Categories
+          // var categories = await create_product_categories(product) || [];
+          // console.log('categories created so far: ', categories);
+
+          // Create Product ( With No Categories )
+          create_product(product, prices.total_price, []).then(response => {
+            console.log('Trying to add to card the product: ', response.data);
+            add_to_cart(response.data.id).then(data => {
+              console.log('Added To Cart Product_ID: ', response.data.id);
+
+              // Remove Loading Class To Button
+              document.getElementById('external_add_to_cart').classList.remove('loading');
+
+              // Add to cart Notification
+              Toastify({
+                text: "کالا با موفقیت اضافه شد، جهت تسویه حساب اینجا کلیک کنید",
+                duration: 8000,
+                destination: settings.wc_cart_url,
+                newWindow: true,
+                close: true,
+                gravity: "bottom", // `top` or `bottom`
+                position: "left", // `left`, `center` or `right`
+                backgroundColor: "linear-gradient(to right, #00b09b, #96c93d)",
+                stopOnFocus: true, // Prevents dismissing of toast on hover
+                onClick: function(){} // Callback after click
+              }).showToast();
+            });
+          }).catch(error => {
+            console.log(error);
+            if(error.status === 0) {
+              Toastify({
+                text: error.message,
+                duration: 8000,
+                gravity: "bottom", // `top` or `bottom`
+                position: "left", // `left`, `center` or `right`
+                backgroundColor: "linear-gradient(to right, #ff416c, #ff4b2b)",
+              }).showToast();
+            }
+          });
+
+        } else {
+          // e.target.innerHTML += ` No Product Found`;
+          Toastify({
+            text: "محصولی یافت نشد، لطفا دوباره تلاش کنید",
+            duration: 8000,
+            gravity: "bottom", // `top` or `bottom`
+            position: "left", // `left`, `center` or `right`
+            backgroundColor: "linear-gradient(to right, #ff416c, #ff4b2b)",
+          }).showToast();
+          document.getElementById('external_add_to_cart').classList.remove('loading');
+        }
+      }, false);
+
+      // Calculate Price
+      document.getElementById('external_calculate').addEventListener('click', async e => {
+
+        e.preventDefault();
+
+        document.getElementById('external_calculate').classList.add('loading');
+        const product = document.getElementById('km_iframe').contentWindow.km_get_product();
+
+        if(product.status > 0) {
+          console.log('KM_LOG: calculate product:', product)
+          try {
+            const prices = await calculate_price(product);
+            show_prices(prices, product);
+          } catch(e) {
+            Toastify({
+              text: "مشکلی رخ داد دوباره تلاش",
+              duration: 8000,
+              gravity: "bottom", // `top` or `bottom`
+              position: "left", // `left`, `center` or `right`
+              backgroundColor: "linear-gradient(to right, #ff416c, #ff4b2b)",
+            }).showToast();
+            document.getElementById('external_calculate').classList.remove('loading');
+          }
+        }
+
+        document.getElementById('external_calculate').classList.remove('loading');
+
+      });
+
+      // Add to favorites button event
+      document.getElementById("external_add_to_favorites").addEventListener('click', e => {
+        var url = document.getElementById('km_iframe').contentWindow.get_current_url();
+        add_to_favorites(url);
+        Toastify({
+          text: "با موفقیت اضافه شد، برای نمایش لیست کل کلیک کنید",
+          duration: 8000,
+          destination: settings.favorites_page_url,
+          newWindow: true,
+          close: true,
+          gravity: "bottom", // `top` or `bottom`
+          position: "left", // `left`, `center` or `right`
+          backgroundColor: "linear-gradient(to right, #00b09b, #96c93d)",
+          stopOnFocus: true, // Prevents dismissing of toast on hover
+          onClick: function(){} // Callback after click
+        }).showToast();
+      })      
+
+      // Display the add to cart button
+      document.getElementById('external_add_to_cart_container').style.display = 'block'; 
+    };
+
+    window.add_to_cart_status = false;
+    // 
+    // CUSTOM BYPASS
+    // 
+    if(custom) {
+      // Append Iframe to container
+      container.appendChild(iframe);
+      window.add_to_cart_status = true;
+    } else { 
+      // 
+      // CORS BYPASS
+      // 
+      container.innerHTML = `<iframe id="km_iframe" src="${iframe_base_url}" is="x-frame-bypass" width="100%" height="600"></iframe>`;
+      // Add Onload Event
+      document.getElementById('km_iframe').onload = (e) => {
+        var _this_bypass_frame = e.target;
+        var doc_bypass_frame   = _this_bypass_frame.contentWindow.document;
+        var head_bypass_frame  = doc_bypass_frame.getElementsByTagName('head')[0];
+
+        var inject_settings_interval = setInterval( () => {
+          if(_this_bypass_frame.contentWindow !== null) {
+            // Inject Settings Into Iframe Window
+            _this_bypass_frame.contentWindow.km_settings = settings;
+            _this_bypass_frame.contentWindow.iframe_properties = {
+              type: iframe_variation,
+              variation: iframe_variations[iframe_variation]
+            };
+          }
+        }, 1000);
+
+        // insertScript(doc_bypass_frame, head_bypass_frame, settings.plugin_dir + `assets/js/${iframe_name}_inject.js`);
+
+        window.add_to_cart_status = true;
+
+        // Display the add to cart button
+        document.getElementById('external_add_to_cart_container').style.display = 'block'; 
+      };
+    
+      // Add to cart button event
+      document.getElementById('external_add_to_cart').addEventListener('click', async e => {
+        if(window.add_to_cart_status) {
+
+          // Add Loading Class To Button
+          document.getElementById('external_add_to_cart').classList.add('loading');
+
+          var product = document.getElementById('km_iframe').contentWindow.km_get_product();
+          console.log("Product: ", product);
+
+          // Check If Product Available
+          if(product.status > 0) {
+            // Calculate And Convert Price
+            var prices = await calculate_price(product);
+            console.log("Prices:", prices);
+
+            // // Create Categories
+            // var categories = await create_product_categories(product) || [];
+            // console.log('categories created so far: ', categories);
+
+            // Create Product ( With No Categories )
+            create_product(product, prices.total_price, []).then(response => {
+              console.log('Trying to add to card the product: ', response.data);
+              add_to_cart(response.data.id).then(data => {
+                console.log('Added To Cart Product_ID: ', response.data.id);
+
+                // Remove Loading Class To Button
+                document.getElementById('external_add_to_cart').classList.remove('loading');
+
+                // Add to cart notification
+                Toastify({
+                  text: "کالا با موفقیت اضافه شد، جهت تسویه حساب اینجا کلیک کنید",
+                  duration: 8000,
+                  destination: settings.wc_cart_url,
+                  newWindow: true,
+                  close: true,
+                  gravity: "bottom", // `top` or `bottom`
+                  position: "left", // `left`, `center` or `right`
+                  backgroundColor: "linear-gradient(to right, #00b09b, #96c93d)",
+                  stopOnFocus: true, // Prevents dismissing of toast on hover
+                  onClick: function(){} // Callback after click
+                }).showToast();
+              });
+            }).catch(error => {
+              console.log("KM_LOG: ERROR:", error);
+              if(error.status === 0) {
+                Toastify({
+                  text: error.message,
+                  duration: 8000,
+                  gravity: "bottom", // `top` or `bottom`
+                  position: "left", // `left`, `center` or `right`
+                  backgroundColor: "linear-gradient(to right, #ff416c, #ff4b2b)",
+                }).showToast();
+              }
+            });
+
+          } else {
+            // No Product Found (STATUS: 0)
+            Toastify({
+              text: "محصولی یافت نشد، لطفا دوباره تلاش کنید",
+              duration: 8000,
+              gravity: "bottom", // `top` or `bottom`
+              position: "left", // `left`, `center` or `right`
+              backgroundColor: "linear-gradient(to right, #ff416c, #ff4b2b)",
+            }).showToast();
+            document.getElementById('external_add_to_cart').classList.remove('loading');
+          }
+        } else {
+          console.log("KM_LOG: add to cart not ready yet.")
+        }
+      }, false);
+
+      // Calculate Price
+      document.getElementById('external_calculate').addEventListener('click', async e => {
+
+        e.preventDefault();
+
+        document.getElementById('external_calculate').classList.add('loading');
+        const product = document.getElementById('km_iframe').contentWindow.km_get_product();
+
+        if(product.status > 0) {
+          console.log('KM_LOG: calculate product:', product)
+          try {
+            const prices = await calculate_price(product);
+            show_prices(prices, product);
+          } catch(e) {
+            Toastify({
+              text: "مشکلی رخ داد دوباره تلاش",
+              duration: 8000,
+              gravity: "bottom", // `top` or `bottom`
+              position: "left", // `left`, `center` or `right`
+              backgroundColor: "linear-gradient(to right, #ff416c, #ff4b2b)",
+            }).showToast();
+            document.getElementById('external_calculate').classList.remove('loading');
+          }
+        }
+
+        document.getElementById('external_calculate').classList.remove('loading');
+
+      });
+
+      // Add to favorites button event
+      document.getElementById("external_add_to_favorites").addEventListener('click', e => {
+        var url = document.getElementById('km_iframe').contentWindow.get_current_url();
+        add_to_favorites(url.toString());
+        Toastify({
+          text: "با موفیت به لیست علاقه مندی ها اضافه شد.، برای نمایش لیست 'علاقه مندی ها' کلیک کنید.",
+          duration: 8000,
+          destination: settings.favorites_page_url,
+          newWindow: true,
+          close: true,
+          gravity: "bottom", // `top` or `bottom`
+          position: "left", // `left`, `center` or `right`
+          backgroundColor: "linear-gradient(to right, #00b09b, #96c93d)",
+          stopOnFocus: true, // Prevents dismissing of toast on hover
+          onClick: function(){} // Callback after click
+        }).showToast();
+      
+      });
+
+      
+    }
+}
+  // });
+// });
